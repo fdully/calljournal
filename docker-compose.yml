@@ -1,0 +1,22 @@
+version: '3.7'
+
+services:
+
+  postgres:
+    image: postgres
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: ${CJ_DB_LOGIN}
+      POSTGRES_PASSWORD: ${CJ_DB_PASSWORD}
+      POSTGRES_DB: ${CJ_DB_NAME}
+
+  minio:
+    image: minio/minio
+    ports:
+      - 9000:9000
+    environment:
+      MINIO_ACCESS_KEY: ${CJ_MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${CJ_MINIO_SECRET_KEY}
+    command: server /data
+

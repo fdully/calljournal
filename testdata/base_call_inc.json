@@ -1,0 +1,20 @@
+{
+  "uuid": "d8dd0d47-0dad-4be0-868b-a710b8f94d84",
+  "clid": "79002800421",
+  "clna": "79002800421",
+  "dest": "84957899090",
+  "dirc": "inc",
+  "stti": "2020-07-18 19:59:26",
+  "durs": 18,
+  "bils": 17,
+  "recd": false,
+  "recs": 0,
+  "recl": "",
+  "rtag": "",
+  "epos": 1595102366,
+  "epoa": 1595102367,
+  "epoe": 1595102384,
+  "wbye": "recv_bye",
+  "hang": "NORMAL_CLEARING",
+  "code": "200"
+}

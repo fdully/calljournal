@@ -1,0 +1,4 @@
+.env*
+calljournal.log
+.idea
+.DS_Store
