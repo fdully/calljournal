@@ -80,6 +80,7 @@ func (c *callFiles) ReadBaseCallsFromDir(ctx context.Context, fileChan chan os.F
 			}
 		case <-ctx.Done():
 			ticker.Stop()
+
 			return nil
 		}
 	}

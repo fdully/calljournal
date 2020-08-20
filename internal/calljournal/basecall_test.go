@@ -4,12 +4,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/fdully/calljournal/internal/calljournal"
+	"github.com/fdully/calljournal/internal/calljournal/model"
 	"github.com/fdully/calljournal/internal/pb"
 	"github.com/golang/protobuf/ptypes"
-
-	"github.com/fdully/calljournal/internal/calljournal"
-
-	"github.com/fdully/calljournal/internal/calljournal/model"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )

@@ -27,6 +27,7 @@ func NewServerEnv(ctx context.Context, opts ...Option) *ServerEnv {
 func WithDatabase(db *database.DB) Option {
 	return func(env *ServerEnv) *ServerEnv {
 		env.database = db
+
 		return env
 	}
 }
@@ -34,6 +35,7 @@ func WithDatabase(db *database.DB) Option {
 func WithBlobstore(s storage.Blobstore) Option {
 	return func(env *ServerEnv) *ServerEnv {
 		env.blobstore = s
+
 		return env
 	}
 }

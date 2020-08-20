@@ -54,6 +54,7 @@ func (c *CallJournalDB) AddBaseCall(ctx context.Context, bc *model.BaseCall) err
 		if err != nil {
 			return fmt.Errorf("failed to add call: %w", err)
 		}
+
 		return nil
 	})
 }

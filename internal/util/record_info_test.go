@@ -4,9 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fdully/calljournal/internal/util"
-
 	"github.com/fdully/calljournal/internal/calljournal/model"
+	"github.com/fdully/calljournal/internal/util"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )

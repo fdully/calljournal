@@ -4,17 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/fdully/calljournal/internal/calljournal"
 	"github.com/fdully/calljournal/internal/lame"
-
+	"github.com/fdully/calljournal/internal/logging"
 	"github.com/fdully/calljournal/internal/pb"
 	"github.com/fdully/calljournal/internal/server"
-	"google.golang.org/grpc"
-
-	"github.com/fdully/calljournal/internal/calljournal"
 	"github.com/fdully/calljournal/internal/setup"
-
-	"github.com/fdully/calljournal/internal/logging"
 	"github.com/sethvargo/go-signalcontext"
+	"google.golang.org/grpc"
 )
 
 func main() {

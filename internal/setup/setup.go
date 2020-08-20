@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/fdully/calljournal/internal/logging"
-
 	"github.com/fdully/calljournal/internal/database"
+	"github.com/fdully/calljournal/internal/logging"
 	"github.com/fdully/calljournal/internal/serverenv"
 	"github.com/fdully/calljournal/internal/storage"
 	"github.com/sethvargo/go-envconfig"

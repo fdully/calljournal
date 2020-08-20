@@ -3,10 +3,9 @@ package calljournal
 import (
 	"fmt"
 
-	"github.com/fdully/calljournal/internal/util"
-
 	"github.com/fdully/calljournal/internal/calljournal/model"
 	"github.com/fdully/calljournal/internal/pb"
+	"github.com/fdully/calljournal/internal/util"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/google/uuid"
 )
