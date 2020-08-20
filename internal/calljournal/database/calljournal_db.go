@@ -78,7 +78,7 @@ func (c *CallJournalDB) GetBaseCall(ctx context.Context, uuid uuid.UUID) (*model
 		row := tx.QueryRow(ctx, `
 			SELECT
 				uuid, clid, clna, dest, dirc, stti, durs, bils, recd, recs, recl, rtag,
-				epos, epoa, epoe, tag1, tag2, tag3 wbye, hang, code
+				epos, epoa, epoe, tag1, tag2, tag3, wbye, hang, code
 			FROM
 				base_calls
 			WHERE
@@ -97,6 +97,10 @@ func (c *CallJournalDB) GetBaseCall(ctx context.Context, uuid uuid.UUID) (*model
 
 		return nil
 	}); err != nil {
+		if errors.Is(err, database.ErrNotFound) {
+			return nil, database.ErrNotFound
+		}
+
 		return nil, fmt.Errorf("failed to get base call by uuid: %w", err)
 	}
 

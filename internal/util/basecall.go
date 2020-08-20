@@ -1,11 +1,10 @@
-package calljournal
+package util
 
 import (
 	"fmt"
 
 	"github.com/fdully/calljournal/internal/calljournal/model"
 	"github.com/fdully/calljournal/internal/pb"
-	"github.com/fdully/calljournal/internal/util"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/google/uuid"
 )
@@ -14,7 +13,7 @@ func BaseCallToProtobufBaseCall(bc *model.BaseCall) (*pb.BaseCall, error) {
 	var pbBC pb.BaseCall
 
 	if bc == nil {
-		return nil, util.ErrCantBeNil
+		return nil, ErrCantBeNil
 	}
 
 	stti, err := ptypes.TimestampProto(bc.STTI)
@@ -53,7 +52,7 @@ func ProtobufBaseCallToBaseCall(pbBC *pb.BaseCall) (*model.BaseCall, error) {
 	var bc model.BaseCall
 
 	if pbBC == nil {
-		return nil, util.ErrCantBeNil
+		return nil, ErrCantBeNil
 	}
 
 	stti, err := ptypes.Timestamp(pbBC.Stti)

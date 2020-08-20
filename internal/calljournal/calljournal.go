@@ -47,7 +47,7 @@ func (c *BaseCallServer) SaveBaseCall(ctx context.Context, req *pb.SaveBaseCallR
 		return nil, util.LogError(status.Errorf(codes.InvalidArgument, "basecall %s is not a valid UUID: %v", pbBC.Uuid, err))
 	}
 
-	bc, err := ProtobufBaseCallToBaseCall(pbBC)
+	bc, err := util.ProtobufBaseCallToBaseCall(pbBC)
 	if err != nil {
 		return nil, util.LogError(status.Errorf(codes.Internal, "%v", err))
 	}

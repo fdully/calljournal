@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 
-	"github.com/fdully/calljournal/internal/calljournal"
 	"github.com/fdully/calljournal/internal/calljournal/model"
 	"github.com/fdully/calljournal/internal/calluploader/callfiles"
 	"github.com/fdully/calljournal/internal/logging"
@@ -118,7 +117,7 @@ func (c *CallUploader) RunCallFilesReader(ctx context.Context) error {
 }
 
 func (c *CallUploader) saveBaseCall(ctx context.Context, bc *model.BaseCall) error {
-	pbBC, err := calljournal.BaseCallToProtobufBaseCall(bc)
+	pbBC, err := util.BaseCallToProtobufBaseCall(bc)
 	if err != nil {
 		return err
 	}

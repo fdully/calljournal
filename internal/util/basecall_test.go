@@ -1,12 +1,12 @@
-package calljournal_test
+package util_test
 
 import (
 	"testing"
 	"time"
 
-	"github.com/fdully/calljournal/internal/calljournal"
 	"github.com/fdully/calljournal/internal/calljournal/model"
 	"github.com/fdully/calljournal/internal/pb"
+	"github.com/fdully/calljournal/internal/util"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -72,13 +72,13 @@ func TestBaseCall(t *testing.T) {
 	}
 
 	t.Run("basecall to pb basecall", func(t *testing.T) {
-		p, err := calljournal.BaseCallToProtobufBaseCall(&bc)
+		p, err := util.BaseCallToProtobufBaseCall(&bc)
 		require.NoError(t, err)
 		require.Equal(t, &pbBC, p)
 	})
 
 	t.Run("pb basecall to basecall", func(t *testing.T) {
-		b, err := calljournal.ProtobufBaseCallToBaseCall(&pbBC)
+		b, err := util.ProtobufBaseCallToBaseCall(&pbBC)
 		require.NoError(t, err)
 		require.Equal(t, &bc, b)
 	})
