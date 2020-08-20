@@ -2,3 +2,5 @@
 calljournal.log
 .idea
 .DS_Store
+tmp
+cj.exe

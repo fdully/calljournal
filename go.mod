@@ -3,24 +3,29 @@ module github.com/fdully/calljournal
 go 1.14
 
 require (
-	github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 // indirect
-	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
-	github.com/containerd/continuity v0.0.0-20200710164510-efbc4488d8fe // indirect
-	github.com/gofrs/uuid v3.2.0+incompatible
-	github.com/golang-migrate/migrate/v4 v4.11.0 // indirect
 	github.com/golang/protobuf v1.4.2
-	github.com/google/exposure-notifications-server v0.0.0-20200724174129-3483151a5dc6 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/jackc/pgx/v4 v4.8.0
+	github.com/kr/text v0.2.0 // indirect
+	github.com/lib/pq v1.5.2 // indirect
 	github.com/minio/minio-go/v7 v7.0.1
-	github.com/opencontainers/runc v0.1.1 // indirect
-	github.com/ory/dockertest v3.3.5+incompatible // indirect
+	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
+	github.com/modern-go/reflect2 v1.0.1 // indirect
+	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/sethvargo/go-envconfig v0.2.2
-	github.com/sethvargo/go-retry v0.1.0 // indirect
 	github.com/sethvargo/go-signalcontext v0.1.0
+	github.com/shopspring/decimal v0.0.0-20200419222939-1884f454f8ea // indirect
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/stretchr/testify v1.6.1
 	go.uber.org/zap v1.15.0
+	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
+	golang.org/x/net v0.0.0-20200707034311-ab3426394381 // indirect
+	golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae // indirect
+	golang.org/x/tools v0.0.0-20200715235423-130c9f19d3fe // indirect
+	google.golang.org/genproto v0.0.0-20200715011427-11fb19a81f2c // indirect
 	google.golang.org/grpc v1.30.0
 	google.golang.org/protobuf v1.25.0
+	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
+	honnef.co/go/tools v0.0.1-2020.1.4 // indirect
 )

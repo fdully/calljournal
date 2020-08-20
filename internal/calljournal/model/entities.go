@@ -22,14 +22,19 @@ type BaseCall struct {
 	EPOS int64     `json:"epos"`
 	EPOA int64     `json:"epoa"`
 	EPOE int64     `json:"epoe"`
+	TAG1 string    `json:"tag1"`
+	TAG2 string    `json:"tag2"`
+	TAG3 string    `json:"tag3"`
 	WBYE string    `json:"wbye"`
 	HANG string    `json:"hang"`
 	CODE string    `json:"code"`
 }
 
-type AudioRecord struct {
-	UUID       uuid.UUID
-	StartTime  time.Time
-	ObjectName string
-	Data       []byte
+type RecordInfo struct {
+	UUID  uuid.UUID
+	Name  string
+	Dirc  string
+	Year  string
+	Month string
+	Day   string
 }

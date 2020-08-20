@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -12,13 +11,13 @@ import (
 
 var _ Blobstore = (*Minio)(nil)
 
-type MinioConfig struct {
+type minioConfig struct {
 	Endpoint  string `env:"CJ_MINIO_ENDPOINT, default=localhost:9000"`
 	AccessKey string `env:"CJ_MINIO_ACCESS_KEY, required"`
 	SecretKey string `env:"CJ_MINIO_SECRET_KEY, required"`
 }
 
-func NewMinio(ctx context.Context, config *MinioConfig) (Blobstore, error) {
+func newMinio(ctx context.Context, config *minioConfig) (Blobstore, error) {
 	client, err := minio.New(config.Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(config.AccessKey, config.SecretKey, ""),
 		Secure: false,
@@ -34,20 +33,31 @@ type Minio struct {
 	client *minio.Client
 }
 
-func (m *Minio) CreateObject(ctx context.Context, bucket, objectName string, contents []byte) error {
-	_, err := m.client.PutObject(ctx, bucket, objectName, bytes.NewReader(contents), int64(len(contents)), minio.PutObjectOptions{ContentType: "application/octet-stream"})
+func (m *Minio) CreateObject(ctx context.Context, bucket, objectName string, contents *bytes.Buffer) error {
+	_, err := m.client.PutObject(ctx, bucket, objectName, contents,
+		int64(contents.Len()), minio.PutObjectOptions{ContentType: "application/octet-stream"})
 	if err != nil {
 		return fmt.Errorf("failed CreateObject storage: %w", err)
 	}
+
 	return nil
 }
 
-func (m *Minio) GetObject(ctx context.Context, bucket, objectName string) ([]byte, error) {
+func (m *Minio) GetObject(ctx context.Context, bucket, objectName string) (*bytes.Buffer, error) {
 	o, err := m.client.GetObject(context.Background(), bucket, objectName, minio.GetObjectOptions{})
 	if err != nil {
-		return nil, fmt.Errorf("failed to get object %s %s, - %v", bucket, objectName, err)
+		return nil, fmt.Errorf("failed to get object %s %s, - %w", bucket, objectName, err)
 	}
-	return ioutil.ReadAll(o)
+	defer o.Close()
+
+	buffer := new(bytes.Buffer)
+
+	_, err = buffer.ReadFrom(o)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get object %s from storage: %w", objectName, err)
+	}
+
+	return buffer, nil
 }
 
 func (m *Minio) DeleteObject(ctx context.Context, bucket, objectName string) error {

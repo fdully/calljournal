@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+option go_package=".;pb";
+
+message RecordInfo {
+  string uuid = 1;
+  string name = 3;
+  string dirc = 5;
+  string year = 7;
+  string month = 9;
+  string day = 11;
+}
+
+message SaveAudioRecordRequest {
+  oneof data {
+    RecordInfo info = 1;
+    bytes record_chunk = 2;
+  }
+}
+
+message SaveAudioRecordResponse {
+  string uuid = 1;
+  uint32 size = 3;
+}
+
+service AudioRecordService {
+  rpc SaveAudioRecord(stream SaveAudioRecordRequest) returns (SaveAudioRecordResponse);
+}

@@ -1,0 +1,12 @@
+run:
+  tests: true
+
+linters:
+  disable-all: false
+  enable-all: true
+  disable:
+    - testpackage
+    - gochecknoglobals
+    - funlen
+    - lll
+    - unparam

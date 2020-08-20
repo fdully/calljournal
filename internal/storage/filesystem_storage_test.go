@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestFilesystemStorage_CreateObject(t *testing.T) {
@@ -14,26 +16,27 @@ func TestFilesystemStorage_CreateObject(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { os.RemoveAll(tmp) })
+
+	t.Cleanup(func() { _ = os.RemoveAll(tmp) })
 
 	cases := []struct {
 		name     string
 		folder   string
 		filepath string
-		contents []byte
+		contents *bytes.Buffer
 		err      bool
 	}{
 		{
 			name:     "default",
 			folder:   tmp,
 			filepath: "myfile",
-			contents: []byte("contents"),
+			contents: bytes.NewBuffer([]byte{}),
 		},
 		{
 			name:     "bad_path",
-			folder:   "/badpath/doesnt/exist",
+			folder:   "/badpath/doesn't/exist",
 			filepath: "myfile",
-			contents: []byte("contents"),
+			contents: new(bytes.Buffer),
 			err:      true,
 		},
 	}
@@ -44,7 +47,7 @@ func TestFilesystemStorage_CreateObject(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := context.Background()
 
-			storage, err := NewFilesystemStorage(ctx)
+			storage, err := newFilesystemStorage(ctx)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -60,9 +63,7 @@ func TestFilesystemStorage_CreateObject(t *testing.T) {
 					t.Fatal(err)
 				}
 
-				if !bytes.Equal(contents, tc.contents) {
-					t.Errorf("expected %q to be %q ", contents, tc.contents)
-				}
+				require.Equal(t, tc.contents, contents)
 			}
 		})
 	}
@@ -97,7 +98,7 @@ func TestFilesystemStorage_DeleteObject(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := context.Background()
 
-			storage, err := NewFilesystemStorage(ctx)
+			storage, err := newFilesystemStorage(ctx)
 			if err != nil {
 				t.Fatal(err)
 			}

@@ -2,7 +2,6 @@ syntax = "proto3";
 
 option go_package = ".;pb";
 
-import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
 message BaseCall {
@@ -21,13 +20,17 @@ message BaseCall {
   int64 epos = 37;
   int64 epoa = 40;
   int64 epoe = 43;
-  string wbye = 46;
-  string hang = 49;
-  string code = 52;
+  string tag1 = 44;
+  string tag2 = 47;
+  string tag3 = 50;
+  string wbye = 53;
+  string hang = 56;
+  string code = 59;
 }
 
 message SaveBaseCallRequest { BaseCall base_call = 1; }
+message SaveBaseCallResponse { string uuid = 1; }
 
 service BaseCallService {
-  rpc SaveBaseCall(SaveBaseCallRequest) returns (google.protobuf.Empty);
+  rpc SaveBaseCall(SaveBaseCallRequest) returns (SaveBaseCallResponse);
 }

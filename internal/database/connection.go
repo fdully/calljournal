@@ -38,11 +38,14 @@ func (db *DB) Close(ctx context.Context) {
 
 // dbConnectionString builds a connection string suitable for the pgx Postgres driver, using the values of vars.
 func dbConnectionString(config *Config) string {
+	p := make([]string, 0)
+
 	vals := dbValues(config)
-	var p []string
+
 	for k, v := range vals {
 		p = append(p, fmt.Sprintf("%s=%s", k, v))
 	}
+
 	return strings.Join(p, " ")
 }
 
@@ -81,5 +84,6 @@ func dbValues(config *Config) map[string]string {
 	setIfPositiveDuration(p, "pool_max_conn_lifetime", config.PoolMaxConnLife)
 	setIfPositiveDuration(p, "pool_max_conn_idle_time", config.PoolMaxConnIdle)
 	setIfPositiveDuration(p, "pool_health_check_period", config.PoolHealthCheck)
+
 	return p
 }

@@ -17,6 +17,9 @@ CREATE TABLE "base_calls" (
   "epos" int8 NOT NULL,
   "epoa" int8,
   "epoe" int8 NOT NULL,
+  "tag1" varchar,
+  "tag2" varchar,
+  "tag3" varchar,
   "wbye" varchar,
   "hang" varchar,
   "code" varchar
@@ -37,6 +40,9 @@ COMMENT ON COLUMN "base_calls"."rtag" IS 'call record privacy tag';
 COMMENT ON COLUMN "base_calls"."epos" IS 'call start time unix';
 COMMENT ON COLUMN "base_calls"."epoa" IS 'call answer time unix';
 COMMENT ON COLUMN "base_calls"."epoe" IS 'call end time unix';
+COMMENT ON COLUMN "base_calls"."tag1" IS 'call additional info';
+COMMENT ON COLUMN "base_calls"."tag2" IS 'call additional info';
+COMMENT ON COLUMN "base_calls"."tag3" IS 'call additional info';
 COMMENT ON COLUMN "base_calls"."wbye" IS 'call hangup initiator';
 COMMENT ON COLUMN "base_calls"."hang" IS 'call hangup status';
 COMMENT ON COLUMN "base_calls"."code" IS 'call status code';

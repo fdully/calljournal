@@ -1,32 +1,26 @@
 package storage
 
 import (
+	"bytes"
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/sethvargo/go-envconfig"
 )
 
-// BlobstoreType defines a specific blobstore.
-type BlobstoreType string
-
-const (
-	BlobstoreTypeFilesystem BlobstoreType = "FILESYSTEM"
-	BlobstoreTypeMinio      BlobstoreType = "MINIO"
+var (
+	ErrNotFound      = errors.New("storage object not found")
+	ErrUknownStorage = errors.New("unknown blob storage")
 )
-
-// Config defines the configuration for a blobstore.
-type Config struct {
-	BlobstoreType BlobstoreType `env:"CJ_BLOBSTORE, default=MINIO"`
-}
 
 // Blobstore defines the minimum interface for a blob storage system.
 type Blobstore interface {
 	// CreateObject creates or overwrites an object in the storage system.
-	CreateObject(ctx context.Context, bucket, objectName string, contents []byte) error
+	CreateObject(ctx context.Context, bucket, objectName string, contents *bytes.Buffer) error
 
 	// GetObject download object from storage system
-	GetObject(ctx context.Context, bucket, objectName string) ([]byte, error)
+	GetObject(ctx context.Context, bucket, objectName string) (*bytes.Buffer, error)
 
 	// DeleteObject deltes an object or does nothing if the object doesn't exist.
 	DeleteObject(ctx context.Context, bucket, objectName string) error
@@ -36,15 +30,17 @@ type Blobstore interface {
 func BlobstoreFor(ctx context.Context, typ BlobstoreType) (Blobstore, error) {
 	switch typ {
 	case BlobstoreTypeMinio:
-		var config MinioConfig
+		var config minioConfig
+
 		err := envconfig.Process(ctx, &config)
 		if err != nil {
-			return nil, fmt.Errorf("failed to process minio config %v", err)
+			return nil, fmt.Errorf("failed to process minio config %w", err)
 		}
-		return NewMinio(ctx, &config)
+
+		return newMinio(ctx, &config)
 	case BlobstoreTypeFilesystem:
-		return NewFilesystemStorage(ctx)
+		return newFilesystemStorage(ctx)
 	default:
-		return nil, fmt.Errorf("unknown blob store: %v", typ)
+		return nil, fmt.Errorf("%w: %v", ErrUknownStorage, typ)
 	}
 }

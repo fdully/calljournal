@@ -19,11 +19,10 @@ type Server struct {
 	listener net.Listener
 }
 
-func NewServer(port string) (*Server, error) {
-	addr := fmt.Sprintf(":" + port)
+func NewServer(addr string) (*Server, error) {
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create listener on %s: %v", addr, err)
+		return nil, fmt.Errorf("failed to create listener on %s: %w", addr, err)
 	}
 
 	return &Server{
@@ -37,14 +36,19 @@ func (s *Server) ServeHTTP(ctx context.Context, srv *http.Server) error {
 	logger := logging.FromContext(ctx)
 
 	errCh := make(chan error, 1)
+
 	go func() {
 		<-ctx.Done()
 
 		logger.Debugf("server.Serve: context closed")
-		shutdownCtx, done := context.WithTimeout(context.Background(), 5*time.Second)
+
+		const serverShutdownDelay = 5
+
+		shutdownCtx, done := context.WithTimeout(context.Background(), serverShutdownDelay*time.Second)
 		defer done()
 
 		logger.Debugf("server.Serve: shutting down")
+
 		if err := srv.Shutdown(shutdownCtx); err != nil {
 			select {
 			case errCh <- err:
@@ -82,6 +86,7 @@ func (s *Server) ServeGRPC(ctx context.Context, srv *grpc.Server) error {
 	// Spawn a goroutine that listens for context closure. When the context is
 	// closed, the server is stopped.
 	errCh := make(chan error, 1)
+
 	go func() {
 		<-ctx.Done()
 

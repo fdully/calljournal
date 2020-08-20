@@ -8,18 +8,13 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-type Config struct {
-	LoggerName  string `env:"CJ_LOGGER_NAME, required"`
-	Severity    string `env:"CJ_LOGGER_LEVEL, default=debug"`
-	LogFileName string `env:"CJ_LOGGER_FILE"`
-}
-
 type loggerKey struct{}
 
-var fallbackLogger *zap.SugaredLogger
+var defaultLogger *zap.SugaredLogger
 
-func CreateLogger(c *Config) error {
+func createLogger(c *loggerConfig) error {
 	var l zapcore.Level
+
 	switch c.Severity {
 	case "debug":
 		l = zapcore.DebugLevel
@@ -35,7 +30,13 @@ func CreateLogger(c *Config) error {
 		l = zapcore.DebugLevel
 	}
 
-	z := zap.NewProductionConfig()
+	var z zap.Config
+	if c.DevelopMode {
+		z = zap.NewDevelopmentConfig()
+	} else {
+		z = zap.NewProductionConfig()
+	}
+
 	z.EncoderConfig.EncodeTime = zapcore.RFC3339TimeEncoder
 	z.EncoderConfig.MessageKey = "message"
 	z.EncoderConfig.LevelKey = "severity"
@@ -45,11 +46,12 @@ func CreateLogger(c *Config) error {
 		z.OutputPaths = append(z.OutputPaths, c.LogFileName)
 	}
 
-	logger, err := z.Build()
+	logg, err := z.Build()
 	if err != nil {
 		return fmt.Errorf("failed to build zapp logger: %w", err)
 	}
-	fallbackLogger = logger.Named(c.LoggerName).Sugar()
+
+	defaultLogger = logg.Named(c.LoggerName).Sugar()
 
 	return nil
 }
@@ -59,8 +61,9 @@ func WithLogger(ctx context.Context, logger *zap.SugaredLogger) context.Context 
 }
 
 func FromContext(ctx context.Context) *zap.SugaredLogger {
-	if logger, ok := ctx.Value(loggerKey{}).(*zap.SugaredLogger); ok {
-		return logger
+	if l, ok := ctx.Value(loggerKey{}).(*zap.SugaredLogger); ok {
+		return l
 	}
-	return fallbackLogger
+
+	return defaultLogger
 }
