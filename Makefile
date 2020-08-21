@@ -17,7 +17,7 @@ test:
 	go test -v -race ./... -count=1
 
 integration-tests:
-	docker-compose -f ./docker-compose-tests.yaml up --build --abort-on-container-exit --exit-code-from migration && \
+	docker-compose -f ./docker-compose-tests.yaml up --build --abort-on-container-exit --exit-code-from integration_tests && \
 	docker-compose -f ./docker-compose-tests.yaml down
 
 generate:

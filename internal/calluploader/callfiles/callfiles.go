@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"sync"
 	"time"
+
+	"github.com/fdully/calljournal/internal/logging"
 )
 
 const (
@@ -18,7 +20,7 @@ type FilesInterface interface {
 	ReadBaseCallsFromDir(ctx context.Context, fileChan chan os.FileInfo) error
 	OpenFile(fname string) ([]byte, error)
 	DeleteFile(fname string) error
-	DoItAgainLater(fname string)
+	DoItAgainLater(ctx context.Context, fname string, err error)
 }
 
 // callFiles is periodically reading basecalls json files from file system and send to workers.
@@ -107,7 +109,12 @@ func (c *callFiles) DeleteFile(fname string) error {
 	return nil
 }
 
-func (c *callFiles) DoItAgainLater(fname string) {
+func (c *callFiles) DoItAgainLater(ctx context.Context, fname string, err error) {
+	if err != nil {
+		logger := logging.FromContext(ctx)
+		logger.DPanicf("failed to process basecall file %s: %v", fname, err)
+	}
+
 	c.removeFileFromWork(fname)
 }
 

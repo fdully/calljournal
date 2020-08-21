@@ -76,8 +76,6 @@ func realMain(ctx context.Context) error {
 			if err != nil {
 				logger.Errorf("failed to run worker: %v", err)
 			}
-
-			logger.Info("exiting worker")
 		}()
 	}
 

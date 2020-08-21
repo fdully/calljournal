@@ -12,21 +12,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestBaseCall(t *testing.T) {
-	timeLayout := "2006-01-02 15:04:05"
-	stti, err := time.Parse(timeLayout, "2020-07-13 19:59:26")
-	require.NoError(t, err)
-
-	id, err := uuid.Parse("03fb24ea-3a81-4469-8522-7753d643dcfe")
-	require.NoError(t, err)
-
-	bc := model.BaseCall{
-		UUID: id,
+var (
+	testBaseCall = model.BaseCall{
+		UUID: uuid.Nil,
 		CLID: "79002800421",
 		CLNA: "79002800421",
 		DEST: "9000",
 		DIRC: "inc",
-		STTI: stti,
+		STTI: time.Time{},
 		DURS: 188,
 		BILS: 178,
 		RECD: true,
@@ -44,16 +37,13 @@ func TestBaseCall(t *testing.T) {
 		CODE: "200",
 	}
 
-	pbStti, err := ptypes.TimestampProto(stti)
-	require.NoError(t, err)
-
-	pbBC := pb.BaseCall{
-		Uuid: id.String(),
+	testProtobufBaseCall = pb.BaseCall{
+		Uuid: "",
 		Clid: "79002800421",
 		Clna: "79002800421",
 		Dest: "9000",
 		Dirc: "inc",
-		Stti: pbStti,
+		Stti: nil,
 		Durs: 188,
 		Bils: 178,
 		Recd: true,
@@ -70,16 +60,34 @@ func TestBaseCall(t *testing.T) {
 		Hang: "NORMAL_CLEARING",
 		Code: "200",
 	}
+)
 
-	t.Run("basecall to pb basecall", func(t *testing.T) {
-		p, err := util.BaseCallToProtobufBaseCall(&bc)
+func TestBaseCall(t *testing.T) {
+	timeLayout := "2006-01-02 15:04:05"
+	stti, err := time.Parse(timeLayout, "2020-07-13 19:59:26")
+	require.NoError(t, err)
+
+	id, err := uuid.Parse("03fb24ea-3a81-4469-8522-7753d643dcfe")
+	require.NoError(t, err)
+
+	testBaseCall.UUID = id
+	testBaseCall.STTI = stti
+
+	pbStti, err := ptypes.TimestampProto(stti)
+	require.NoError(t, err)
+
+	testProtobufBaseCall.Uuid = id.String()
+	testProtobufBaseCall.Stti = pbStti
+
+	t.Run("basecall to protobuf basecall", func(t *testing.T) {
+		p, err := util.BaseCallToProtobufBaseCall(&testBaseCall)
 		require.NoError(t, err)
-		require.Equal(t, &pbBC, p)
+		require.Equal(t, &testProtobufBaseCall, p)
 	})
 
-	t.Run("pb basecall to basecall", func(t *testing.T) {
-		b, err := util.ProtobufBaseCallToBaseCall(&pbBC)
+	t.Run("protobuf basecall to basecall", func(t *testing.T) {
+		b, err := util.ProtobufBaseCallToBaseCall(&testProtobufBaseCall)
 		require.NoError(t, err)
-		require.Equal(t, &bc, b)
+		require.Equal(t, &testBaseCall, b)
 	})
 }

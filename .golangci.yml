@@ -7,6 +7,5 @@ linters:
   disable:
     - testpackage
     - gochecknoglobals
-    - funlen
     - lll
     - unparam

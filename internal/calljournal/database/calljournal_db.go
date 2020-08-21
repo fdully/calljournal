@@ -60,19 +60,7 @@ func (c *CallJournalDB) AddBaseCall(ctx context.Context, bc *model.BaseCall) err
 }
 
 func (c *CallJournalDB) GetBaseCall(ctx context.Context, uuid uuid.UUID) (*model.BaseCall, error) {
-	var bc model.BaseCall
-
-	var recs sql.NullInt32
-
-	var recl sql.NullString
-
-	var rtag sql.NullString
-
-	var tag1 sql.NullString
-
-	var tag2 sql.NullString
-
-	var tag3 sql.NullString
+	var bc *model.BaseCall
 
 	if err := c.db.InTx(ctx, pgx.ReadCommitted, func(tx pgx.Tx) error {
 		row := tx.QueryRow(ctx, `
@@ -85,14 +73,10 @@ func (c *CallJournalDB) GetBaseCall(ctx context.Context, uuid uuid.UUID) (*model
 				uuid = $1
 		`, uuid)
 
-		if err := row.Scan(&bc.UUID, &bc.CLID, &bc.CLNA, &bc.DEST, &bc.DIRC,
-			&bc.STTI, &bc.DURS, &bc.BILS, &bc.RECD, &recs, &recl, &rtag,
-			&bc.EPOS, &bc.EPOA, &bc.EPOE, &tag1, &tag2, &tag3, &bc.WBYE, &bc.HANG, &bc.CODE); err != nil {
-			if errors.Is(err, pgx.ErrNoRows) {
-				return database.ErrNotFound
-			}
-
-			return fmt.Errorf("failed to scan base call: %w", err)
+		var err error
+		bc, err = scanOneBaseCall(row)
+		if err != nil {
+			return err
 		}
 
 		return nil
@@ -104,31 +88,7 @@ func (c *CallJournalDB) GetBaseCall(ctx context.Context, uuid uuid.UUID) (*model
 		return nil, fmt.Errorf("failed to get base call by uuid: %w", err)
 	}
 
-	if recs.Valid {
-		bc.RECS = recs.Int32
-	}
-
-	if recl.Valid {
-		bc.RECL = recl.String
-	}
-
-	if rtag.Valid {
-		bc.RTAG = rtag.String
-	}
-
-	if tag1.Valid {
-		bc.TAG1 = tag1.String
-	}
-
-	if tag2.Valid {
-		bc.TAG2 = tag2.String
-	}
-
-	if tag3.Valid {
-		bc.TAG3 = tag3.String
-	}
-
-	return &bc, nil
+	return bc, nil
 }
 
 func (c *CallJournalDB) DeleteBaseCall(ctx context.Context, uuid uuid.UUID) error {
@@ -157,4 +117,52 @@ func (c *CallJournalDB) DeleteBaseCall(ctx context.Context, uuid uuid.UUID) erro
 	}
 
 	return nil
+}
+
+func scanOneBaseCall(row pgx.Row) (*model.BaseCall, error) {
+	var (
+		bc   model.BaseCall
+		recs sql.NullInt32
+		recl sql.NullString
+		rtag sql.NullString
+		tag1 sql.NullString
+		tag2 sql.NullString
+		tag3 sql.NullString
+	)
+
+	if err := row.Scan(&bc.UUID, &bc.CLID, &bc.CLNA, &bc.DEST, &bc.DIRC,
+		&bc.STTI, &bc.DURS, &bc.BILS, &bc.RECD, &recs, &recl, &rtag,
+		&bc.EPOS, &bc.EPOA, &bc.EPOE, &tag1, &tag2, &tag3, &bc.WBYE, &bc.HANG, &bc.CODE); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, database.ErrNotFound
+		}
+
+		return nil, fmt.Errorf("failed to scan base call: %w", err)
+	}
+
+	if recs.Valid {
+		bc.RECS = recs.Int32
+	}
+
+	if recl.Valid {
+		bc.RECL = recl.String
+	}
+
+	if rtag.Valid {
+		bc.RTAG = rtag.String
+	}
+
+	if tag1.Valid {
+		bc.TAG1 = tag1.String
+	}
+
+	if tag2.Valid {
+		bc.TAG2 = tag2.String
+	}
+
+	if tag3.Valid {
+		bc.TAG3 = tag3.String
+	}
+
+	return &bc, nil
 }
