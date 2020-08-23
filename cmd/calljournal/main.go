@@ -43,7 +43,7 @@ func realMain(ctx context.Context) error {
 	}
 	defer env.Close(ctx)
 
-	baseCallServer := calljournal.NewBaseCallServer(ctx, env, &config)
+	baseCallServer := calljournal.NewBaseCallServer(env, &config)
 
 	grpcServer := grpc.NewServer()
 	pb.RegisterBaseCallServiceServer(grpcServer, baseCallServer)
