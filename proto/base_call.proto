@@ -15,7 +15,7 @@ message BaseCall {
   int32 bils = 22;
   bool recd = 25;
   int32 recs = 28;
-  string recl = 31;
+  string rnam = 32;
   string rtag = 34;
   int64 epos = 37;
   int64 epoa = 40;

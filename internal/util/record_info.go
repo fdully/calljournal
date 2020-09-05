@@ -1,8 +1,8 @@
 package util
 
 import (
-	"errors"
 	"fmt"
+	"path/filepath"
 	"strconv"
 
 	"github.com/fdully/calljournal/internal/calljournal/model"
@@ -10,30 +10,29 @@ import (
 	"github.com/google/uuid"
 )
 
-var ErrCantBeNil = errors.New("can't be nil")
-
-func CreateRecordInfo(bc *model.BaseCall) model.RecordInfo {
+func CreateRecordInfo(bc *model.BaseCall, addr string) model.RecordInfo {
 	return model.RecordInfo{
-		UUID:  bc.UUID,
-		Name:  bc.RECL,
-		Dirc:  bc.DIRC,
-		Year:  strconv.Itoa(bc.STTI.Year()),
-		Month: fmt.Sprintf("%02d", int(bc.STTI.Month())),
-		Day:   fmt.Sprintf("%02d", bc.STTI.Day()),
+		UUID: bc.UUID,
+		ADDR: addr,
+		DIRC: bc.DIRC,
+		YEAR: strconv.Itoa(bc.STTI.Year()),
+		MONT: fmt.Sprintf("%02d", int(bc.STTI.Month())),
+		RDAY: fmt.Sprintf("%02d", bc.STTI.Day()),
+		RNAM: bc.RNAM,
 	}
 }
 
-// Creates record path: /inc/2020/04/24/record_file_name.wav.
-func CreateRecordPath(r model.RecordInfo) string {
-	return r.Dirc + "/" + r.Year + "/" + r.Month + "/" + r.Day + "/" + r.Name
+// Creates http record path: /inc/2020/04/24/record_file_name.wav.
+func CreateHTTPRecordPath(r model.RecordInfo) string {
+	return r.DIRC + "/" + r.YEAR + "/" + r.MONT + "/" + r.RDAY + "/" + r.RNAM
+}
+
+func CreateFileRecordPath(r model.RecordInfo) string {
+	return filepath.Join(r.DIRC, r.YEAR, r.MONT, r.RDAY, r.RNAM)
 }
 
 func ProtobufRecordInfoToRecordInfo(p *pb.RecordInfo) (model.RecordInfo, error) {
 	var recordInfo model.RecordInfo
-
-	if p == nil {
-		return recordInfo, ErrCantBeNil
-	}
 
 	id, err := uuid.Parse(p.Uuid)
 	if err != nil {
@@ -41,22 +40,24 @@ func ProtobufRecordInfoToRecordInfo(p *pb.RecordInfo) (model.RecordInfo, error) 
 	}
 
 	return model.RecordInfo{
-		UUID:  id,
-		Name:  p.Name,
-		Dirc:  p.Dirc,
-		Year:  p.Year,
-		Month: p.Month,
-		Day:   p.Day,
+		UUID: id,
+		ADDR: p.Addr,
+		DIRC: p.Dirc,
+		YEAR: p.Year,
+		MONT: p.Mont,
+		RDAY: p.Rday,
+		RNAM: p.Rnam,
 	}, nil
 }
 
 func RecordInfoToProtobufRecordInfo(p model.RecordInfo) *pb.RecordInfo {
 	return &pb.RecordInfo{
-		Uuid:  p.UUID.String(),
-		Name:  p.Name,
-		Dirc:  p.Dirc,
-		Year:  p.Year,
-		Month: p.Month,
-		Day:   p.Day,
+		Uuid: p.UUID.String(),
+		Addr: p.ADDR,
+		Dirc: p.DIRC,
+		Year: p.YEAR,
+		Mont: p.MONT,
+		Rday: p.RDAY,
+		Rnam: p.RNAM,
 	}
 }

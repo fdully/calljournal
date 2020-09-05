@@ -1,4 +1,4 @@
-package lame
+package recordstore
 
 import (
 	"bytes"
@@ -16,7 +16,7 @@ func Wav2Mp3(ctx context.Context, wav *bytes.Buffer) (*bytes.Buffer, error) {
 	logger := logging.FromContext(ctx)
 
 	// temporary file for wav
-	w, err := ioutil.TempFile(config.TempDir, "cj-")
+	w, err := ioutil.TempFile(os.TempDir(), "cj-")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create tmp file: %w", err)
 	}
@@ -38,7 +38,7 @@ func Wav2Mp3(ctx context.Context, wav *bytes.Buffer) (*bytes.Buffer, error) {
 	}
 
 	// temporary file for mp3
-	m, err := ioutil.TempFile(config.TempDir, "cj-")
+	m, err := ioutil.TempFile(os.TempDir(), "cj-")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create tmp file: %w", err)
 	}
@@ -75,7 +75,22 @@ func Wav2Mp3(ctx context.Context, wav *bytes.Buffer) (*bytes.Buffer, error) {
 	return bytes.NewBuffer(mp3), nil
 }
 
-func pingLame() error {
+func WavFileToMp3File(ctx context.Context, wavFile, mp3File string) error {
+	l, err := exec.LookPath("lame")
+	if err != nil {
+		return fmt.Errorf("didn't find 'lame' executable: %w", err)
+	}
+
+	c := exec.Command(l, "-S", "--preset", "insane", wavFile, mp3File)
+	if err := c.Run(); err != nil {
+		return fmt.Errorf("failed to execute lame: %w, got shell exitcode: %d",
+			err, c.ProcessState.ExitCode())
+	}
+
+	return nil
+}
+
+func PingLame() error {
 	l, err := exec.LookPath("lame")
 	if err != nil {
 		return fmt.Errorf("didn't find 'lame' executable: %w", err)

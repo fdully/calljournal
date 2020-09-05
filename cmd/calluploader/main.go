@@ -8,6 +8,7 @@ import (
 	"github.com/fdully/calljournal/internal/calluploader"
 	"github.com/fdully/calljournal/internal/logging"
 	"github.com/fdully/calljournal/internal/pb"
+	"github.com/fdully/calljournal/internal/server"
 	"github.com/sethvargo/go-envconfig"
 	"github.com/sethvargo/go-signalcontext"
 	"google.golang.org/grpc"
@@ -22,11 +23,13 @@ func main() {
 	logger := logging.FromContext(ctx)
 	ctx = logging.WithLogger(ctx, logger)
 
-	logger.Info("starting application")
+	logger.Info("starting calluploader")
 
 	if err := realMain(ctx); err != nil {
 		logger.Fatal(err)
 	}
+
+	logger.Info("exiting calluploader")
 }
 
 func realMain(ctx context.Context) error {
@@ -49,9 +52,14 @@ func realMain(ctx context.Context) error {
 	}
 
 	bcClient := pb.NewBaseCallServiceClient(clientConn)
-	recordClient := pb.NewAudioRecordServiceClient(clientConn)
+	recordInfoClient := pb.NewRecordInfoServiceClient(clientConn)
+	recordDataClient := pb.NewRecordDataServiceClient(clientConn)
 
-	cu := calluploader.NewCallUploader(&config, bcClient, recordClient)
+	cu := calluploader.NewCallUploader(&config, bcClient, recordInfoClient, recordDataClient)
+
+	if err := server.ServeMetricsIfPrometheus(ctx); err != nil {
+		return fmt.Errorf("failed to serve metrics: %w", err)
+	}
 
 	// Reader reads basecalls from directory and sends it to channel.
 	go func() {

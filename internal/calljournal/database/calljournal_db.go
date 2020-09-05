@@ -23,10 +23,10 @@ func NewCallJournalDB(db *database.DB) *CallJournalDB {
 
 func (c *CallJournalDB) AddBaseCall(ctx context.Context, bc *model.BaseCall) error {
 	return c.db.InTx(ctx, pgx.Serializable, func(tx pgx.Tx) error {
-		var recl, rtag, tag1, tag2, tag3 *string
+		var rnam, rtag, tag1, tag2, tag3 *string
 		var recs *int32
 		if bc.RECD {
-			recl = &bc.RECL
+			rnam = &bc.RNAM
 			rtag = &bc.RTAG
 			recs = &bc.RECS
 		}
@@ -42,7 +42,7 @@ func (c *CallJournalDB) AddBaseCall(ctx context.Context, bc *model.BaseCall) err
 		q := `
 			INSERT INTO
 				base_calls
-				(uuid, clid, clna, dest, dirc, stti, durs, bils, recd, recs, recl, rtag,
+				(uuid, clid, clna, dest, dirc, stti, durs, bils, recd, recs, rnam, rtag,
 				epos, epoa, epoe, tag1, tag2, tag3, wbye, hang, code)
 			VALUES
 				($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
@@ -50,9 +50,9 @@ func (c *CallJournalDB) AddBaseCall(ctx context.Context, bc *model.BaseCall) err
 		`
 		_, err := tx.Exec(ctx, q, bc.UUID.String(), bc.CLID, bc.CLNA, bc.DEST,
 			bc.DIRC, bc.STTI.Format(time.RFC3339), bc.DURS, bc.BILS,
-			bc.RECD, recs, recl, rtag, bc.EPOS, bc.EPOA, bc.EPOE, tag1, tag2, tag3, bc.WBYE, bc.HANG, bc.CODE)
+			bc.RECD, recs, rnam, rtag, bc.EPOS, bc.EPOA, bc.EPOE, tag1, tag2, tag3, bc.WBYE, bc.HANG, bc.CODE)
 		if err != nil {
-			return fmt.Errorf("failed to add call: %w", err)
+			return fmt.Errorf("failed to add base call with id %s: %w", bc.UUID.String(), err)
 		}
 
 		return nil
@@ -65,7 +65,7 @@ func (c *CallJournalDB) GetBaseCall(ctx context.Context, uuid uuid.UUID) (*model
 	if err := c.db.InTx(ctx, pgx.ReadCommitted, func(tx pgx.Tx) error {
 		row := tx.QueryRow(ctx, `
 			SELECT
-				uuid, clid, clna, dest, dirc, stti, durs, bils, recd, recs, recl, rtag,
+				uuid, clid, clna, dest, dirc, stti, durs, bils, recd, recs, rnam, rtag,
 				epos, epoa, epoe, tag1, tag2, tag3, wbye, hang, code
 			FROM
 				base_calls
@@ -119,11 +119,30 @@ func (c *CallJournalDB) DeleteBaseCall(ctx context.Context, uuid uuid.UUID) erro
 	return nil
 }
 
+func (c *CallJournalDB) AddRecordInfo(ctx context.Context, r model.RecordInfo) error {
+	return c.db.InTx(ctx, pgx.Serializable, func(tx pgx.Tx) error {
+		q := `
+			INSERT INTO
+				record_info
+				(uuid, addr, dirc, year, mont, rday, rnam)
+			VALUES
+				($1, $2, $3, $4, $5, $6, $7)
+			ON CONFLICT DO NOTHING
+		`
+		_, err := tx.Exec(ctx, q, r.UUID, r.ADDR, r.DIRC, r.YEAR, r.MONT, r.RDAY, r.RNAM)
+		if err != nil {
+			return fmt.Errorf("failed adding record info with id %s: %w", r.UUID, err)
+		}
+
+		return nil
+	})
+}
+
 func scanOneBaseCall(row pgx.Row) (*model.BaseCall, error) {
 	var (
 		bc   model.BaseCall
 		recs sql.NullInt32
-		recl sql.NullString
+		rnam sql.NullString
 		rtag sql.NullString
 		tag1 sql.NullString
 		tag2 sql.NullString
@@ -131,7 +150,7 @@ func scanOneBaseCall(row pgx.Row) (*model.BaseCall, error) {
 	)
 
 	if err := row.Scan(&bc.UUID, &bc.CLID, &bc.CLNA, &bc.DEST, &bc.DIRC,
-		&bc.STTI, &bc.DURS, &bc.BILS, &bc.RECD, &recs, &recl, &rtag,
+		&bc.STTI, &bc.DURS, &bc.BILS, &bc.RECD, &recs, &rnam, &rtag,
 		&bc.EPOS, &bc.EPOA, &bc.EPOE, &tag1, &tag2, &tag3, &bc.WBYE, &bc.HANG, &bc.CODE); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, database.ErrNotFound
@@ -144,8 +163,8 @@ func scanOneBaseCall(row pgx.Row) (*model.BaseCall, error) {
 		bc.RECS = recs.Int32
 	}
 
-	if recl.Valid {
-		bc.RECL = recl.String
+	if rnam.Valid {
+		bc.RNAM = rnam.String
 	}
 
 	if rtag.Valid {

@@ -1,0 +1,39 @@
+version: '3.7'
+
+volumes:
+  data: {}
+
+services:
+
+  postgres:
+    image: postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - ./db/data:/var/lib/postgresql/data
+    env_file:
+      - ./db/db.env
+    restart: unless-stopped
+
+
+  minio:
+    image: minio/minio
+    ports:
+      - 9000:9000
+    volumes:
+      - ./minio/data:/data
+    env_file:
+      - ./minio/minio.env
+    restart: unless-stopped
+    command: server /data
+
+  nsqd:
+    image: nsqio/nsq
+    hostname: "hostname"
+    volumes:
+      - ./nsq/data:/data
+    ports:
+      - 4150:4150
+      - 4151:4151
+    restart: unless-stopped
+    command: /nsqd --data-path=/data

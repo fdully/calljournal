@@ -1,7 +1,10 @@
 package util
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/fdully/calljournal/internal/calljournal/model"
 	"github.com/fdully/calljournal/internal/pb"
@@ -11,10 +14,6 @@ import (
 
 func BaseCallToProtobufBaseCall(bc *model.BaseCall) (*pb.BaseCall, error) {
 	var pbBC pb.BaseCall
-
-	if bc == nil {
-		return nil, ErrCantBeNil
-	}
 
 	stti, err := ptypes.TimestampProto(bc.STTI)
 	if err != nil {
@@ -32,7 +31,7 @@ func BaseCallToProtobufBaseCall(bc *model.BaseCall) (*pb.BaseCall, error) {
 		Bils: bc.BILS,
 		Recd: bc.RECD,
 		Recs: bc.RECS,
-		Recl: bc.RECL,
+		Rnam: bc.RNAM,
 		Rtag: bc.RTAG,
 		Epos: bc.EPOS,
 		Epoa: bc.EPOA,
@@ -50,10 +49,6 @@ func BaseCallToProtobufBaseCall(bc *model.BaseCall) (*pb.BaseCall, error) {
 
 func ProtobufBaseCallToBaseCall(pbBC *pb.BaseCall) (*model.BaseCall, error) {
 	var bc model.BaseCall
-
-	if pbBC == nil {
-		return nil, ErrCantBeNil
-	}
 
 	stti, err := ptypes.Timestamp(pbBC.Stti)
 	if err != nil {
@@ -76,7 +71,7 @@ func ProtobufBaseCallToBaseCall(pbBC *pb.BaseCall) (*model.BaseCall, error) {
 		BILS: pbBC.Bils,
 		RECD: pbBC.Recd,
 		RECS: pbBC.Recs,
-		RECL: pbBC.Recl,
+		RNAM: pbBC.Rnam,
 		RTAG: pbBC.Rtag,
 		EPOS: pbBC.Epos,
 		EPOA: pbBC.Epoa,
@@ -90,4 +85,58 @@ func ProtobufBaseCallToBaseCall(pbBC *pb.BaseCall) (*model.BaseCall, error) {
 	}
 
 	return &bc, nil
+}
+
+func ParseCall(ctx context.Context, call []byte) (*model.BaseCall, error) {
+	bc := struct {
+		UUID uuid.UUID
+		CLID string
+		CLNA string
+		DEST string
+		DIRC string
+		STTI string
+		DURS int32
+		BILS int32
+		RECD bool
+		RECS int32
+		RNAM string
+		RTAG string
+		EPOS int64
+		EPOA int64
+		EPOE int64
+		WBYE string
+		HANG string
+		CODE string
+	}{}
+
+	err := json.Unmarshal(call, &bc)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal base call %w", err)
+	}
+
+	stti, err := time.Parse("2006-01-02 15:04:05", bc.STTI)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse stti time %w", err)
+	}
+
+	return &model.BaseCall{
+		UUID: bc.UUID,
+		CLID: bc.CLID,
+		CLNA: bc.CLNA,
+		DEST: bc.DEST,
+		DIRC: bc.DIRC,
+		STTI: stti,
+		DURS: bc.DURS,
+		BILS: bc.BILS,
+		RECD: bc.RECD,
+		RECS: bc.RECS,
+		RNAM: bc.RNAM,
+		RTAG: bc.RTAG,
+		EPOS: bc.EPOS,
+		EPOA: bc.EPOA,
+		EPOE: bc.EPOE,
+		WBYE: bc.WBYE,
+		HANG: bc.HANG,
+		CODE: bc.CODE,
+	}, nil
 }

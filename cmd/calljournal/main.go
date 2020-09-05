@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/fdully/calljournal/internal/calljournal"
-	"github.com/fdully/calljournal/internal/lame"
 	"github.com/fdully/calljournal/internal/logging"
 	"github.com/fdully/calljournal/internal/pb"
 	"github.com/fdully/calljournal/internal/server"
@@ -23,13 +22,13 @@ func main() {
 	logger := logging.FromContext(ctx)
 	ctx = logging.WithLogger(ctx, logger)
 
-	lame.Init(ctx)
-
-	logger.Info("starting application")
+	logger.Info("starting calljournal")
 
 	if err := realMain(ctx); err != nil {
 		logger.Fatal(err)
 	}
+
+	logger.Info("exiting calljournal")
 }
 
 func realMain(ctx context.Context) error {
@@ -47,7 +46,8 @@ func realMain(ctx context.Context) error {
 
 	grpcServer := grpc.NewServer()
 	pb.RegisterBaseCallServiceServer(grpcServer, baseCallServer)
-	pb.RegisterAudioRecordServiceServer(grpcServer, baseCallServer)
+	pb.RegisterRecordInfoServiceServer(grpcServer, baseCallServer)
+	pb.RegisterRecordDataServiceServer(grpcServer, baseCallServer)
 
 	srv, err := server.NewServer(config.GrpcServerAddress)
 	if err != nil {
@@ -55,6 +55,10 @@ func realMain(ctx context.Context) error {
 	}
 
 	logger.Infof("listen on %s", config.GrpcServerAddress)
+
+	if err := server.ServeMetricsIfPrometheus(ctx); err != nil {
+		return fmt.Errorf("failed to serve metrics: %w", err)
+	}
 
 	return srv.ServeGRPC(ctx, grpcServer)
 }

@@ -1,2 +1,1 @@
-calljournal.log
-.env-dev
+.env*

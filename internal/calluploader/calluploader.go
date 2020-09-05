@@ -12,24 +12,27 @@ import (
 	"github.com/fdully/calljournal/internal/logging"
 	"github.com/fdully/calljournal/internal/pb"
 	"github.com/fdully/calljournal/internal/util"
+	"golang.org/x/sync/errgroup"
 )
 
 type CallUploader struct {
-	cf             callfiles.FilesInterface
-	fileChan       chan os.FileInfo
-	baseCallClient pb.BaseCallServiceClient
-	recordClient   pb.AudioRecordServiceClient
-	config         *Config
+	cf               callfiles.FilesInterface
+	fileChan         chan os.FileInfo
+	baseCallClient   pb.BaseCallServiceClient
+	recordInfoClient pb.RecordInfoServiceClient
+	recordDataClient pb.RecordDataServiceClient
+	config           *Config
 }
 
 func NewCallUploader(config *Config, bcClient pb.BaseCallServiceClient,
-	recordClient pb.AudioRecordServiceClient) *CallUploader {
+	recordInfoClient pb.RecordInfoServiceClient, recordDataClient pb.RecordDataServiceClient) *CallUploader {
 	return &CallUploader{
-		cf:             callfiles.NewCallFiles(config.BaseCallDir, config.ReadDirPeriod),
-		fileChan:       make(chan os.FileInfo),
-		baseCallClient: bcClient,
-		recordClient:   recordClient,
-		config:         config,
+		cf:               callfiles.NewCallFiles(config.BaseCallDir, config.ReadDirPeriod),
+		fileChan:         make(chan os.FileInfo),
+		baseCallClient:   bcClient,
+		recordInfoClient: recordInfoClient,
+		recordDataClient: recordDataClient,
+		config:           config,
 	}
 }
 
@@ -41,7 +44,7 @@ func (c *CallUploader) Worker(ctx context.Context) error {
 	logger.Info("starting worker")
 
 	for fname := range c.fileChan {
-		bc, err := c.makeBaseCallFromFile(ctx, fname.Name())
+		bc, err := c.baseCallFromFile(ctx, fname.Name())
 		if err != nil {
 			c.cf.DoItAgainLater(ctx, fname.Name(), err)
 
@@ -59,18 +62,16 @@ func (c *CallUploader) Worker(ctx context.Context) error {
 				}
 			}
 		// process base call and record
-		case bc.RECD && bc.RECL != "":
+		case bc.RECD && bc.RNAM != "":
 			{
-				recordInfo := util.CreateRecordInfo(bc)
+				recordInfo := util.CreateRecordInfo(bc, c.config.StorageAddr)
 
-				recordData, err := c.cf.OpenFile(recordInfo.Name)
+				recordData, err := c.cf.OpenFile(recordInfo.RNAM)
 				if err != nil {
 					c.cf.DoItAgainLater(ctx, fname.Name(), err)
 
 					continue
 				}
-
-				updateBaseCallRECL(bc, c.config.StorageAddr, recordInfo)
 
 				if err := c.UploadBaseCallAndRecord(ctx, bc, recordInfo, recordData); err != nil {
 					c.cf.DoItAgainLater(ctx, fname.Name(), err)
@@ -78,7 +79,7 @@ func (c *CallUploader) Worker(ctx context.Context) error {
 					continue
 				}
 
-				c.DeleteBaseCallFileAndRecordFile(ctx, fname.Name(), recordInfo.Name)
+				c.DeleteBaseCallFileAndRecordFile(ctx, fname.Name(), recordInfo.RNAM)
 			}
 		default:
 			logger.DPanicf("No case for basecall file upload: %s", fname.Name())
@@ -96,15 +97,22 @@ func (c *CallUploader) RunCallFilesReader(ctx context.Context) error {
 
 func (c *CallUploader) UploadBaseCallAndRecord(ctx context.Context, bc *model.BaseCall,
 	info model.RecordInfo, recordData []byte) error {
-	if err := c.saveBaseCall(ctx, bc); err != nil {
-		return err
-	}
+	ctx = context.Background()
+	g, ctx := errgroup.WithContext(ctx)
 
-	if err := c.saveRecord(ctx, info, recordData); err != nil {
-		return err
-	}
+	g.Go(func() error {
+		return c.saveBaseCall(ctx, bc)
+	})
 
-	return nil
+	g.Go(func() error {
+		return c.saveRecordData(ctx, info, recordData)
+	})
+
+	g.Go(func() error {
+		return c.saveRecordInfo(ctx, info)
+	})
+
+	return g.Wait()
 }
 
 func (c *CallUploader) UploadBaseCall(ctx context.Context, bc *model.BaseCall) error {
@@ -154,14 +162,30 @@ func (c *CallUploader) saveBaseCall(ctx context.Context, bc *model.BaseCall) err
 	return nil
 }
 
-func (c *CallUploader) saveRecord(ctx context.Context, recordInfo model.RecordInfo, recordData []byte) error {
-	stream, err := c.recordClient.SaveAudioRecord(ctx)
+func (c *CallUploader) saveRecordInfo(ctx context.Context, info model.RecordInfo) error {
+	pbInfo := util.RecordInfoToProtobufRecordInfo(info)
+
+	req := &pb.SaveRecordInfoRequest{Info: pbInfo}
+
+	res, err := c.recordInfoClient.SaveRecordInfo(ctx, req)
+	if err != nil {
+		return fmt.Errorf("failed to save record info %s: %w", pbInfo.Uuid, err)
+	}
+
+	logger := logging.FromContext(ctx)
+	logger.Infof("record info with id - %s is saved", res.GetUuid())
+
+	return nil
+}
+
+func (c *CallUploader) saveRecordData(ctx context.Context, recordInfo model.RecordInfo, recordData []byte) error {
+	stream, err := c.recordDataClient.SaveRecordData(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create stream for audio record: %w", err)
 	}
 
-	req := &pb.SaveAudioRecordRequest{
-		Data: &pb.SaveAudioRecordRequest_Info{
+	req := &pb.SaveRecordDataRequest{
+		Data: &pb.SaveRecordDataRequest_Info{
 			Info: util.RecordInfoToProtobufRecordInfo(recordInfo),
 		},
 	}
@@ -184,7 +208,7 @@ func (c *CallUploader) saveRecord(ctx context.Context, recordInfo model.RecordIn
 			return fmt.Errorf("failed to read audio record: %w", err)
 		}
 
-		req := &pb.SaveAudioRecordRequest{Data: &pb.SaveAudioRecordRequest_RecordChunk{RecordChunk: buffer[:n]}}
+		req := &pb.SaveRecordDataRequest{Data: &pb.SaveRecordDataRequest_RecordChunk{RecordChunk: buffer[:n]}}
 
 		err = stream.Send(req)
 		if err != nil {
@@ -203,11 +227,7 @@ func (c *CallUploader) saveRecord(ctx context.Context, recordInfo model.RecordIn
 	return nil
 }
 
-func updateBaseCallRECL(bc *model.BaseCall, storageAddr string, info model.RecordInfo) {
-	bc.RECL = storageAddr + "/" + util.ChangeWavExtToMp3(util.CreateRecordPath(info))
-}
-
-func (c *CallUploader) makeBaseCallFromFile(ctx context.Context, fname string) (*model.BaseCall, error) {
+func (c *CallUploader) baseCallFromFile(ctx context.Context, fname string) (*model.BaseCall, error) {
 	f, err := c.cf.OpenFile(fname)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open basecall file %s: %w", fname, err)

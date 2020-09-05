@@ -10,5 +10,5 @@ const (
 
 // Config defines the configuration for a blobstore.
 type Config struct {
-	BlobstoreType BlobstoreType `env:"CJ_BLOBSTORE_TYPE,default=MINIO"`
+	BlobstoreType BlobstoreType `env:"CJ_BLOBSTORE_TYPE,default=FILESYSTEM"`
 }

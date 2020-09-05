@@ -19,6 +19,9 @@ type Blobstore interface {
 	// CreateObject creates or overwrites an object in the storage system.
 	CreateObject(ctx context.Context, bucket, objectName string, contents *bytes.Buffer) error
 
+	// CreateFObject creates from file or overwrites an object in the storage system.
+	CreateFObject(ctx context.Context, bucket, objectName string, fileName string) error
+
 	// GetObject download object from storage system
 	GetObject(ctx context.Context, bucket, objectName string) (*bytes.Buffer, error)
 

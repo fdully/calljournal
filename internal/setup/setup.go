@@ -6,6 +6,7 @@ import (
 
 	"github.com/fdully/calljournal/internal/database"
 	"github.com/fdully/calljournal/internal/logging"
+	"github.com/fdully/calljournal/internal/queue"
 	"github.com/fdully/calljournal/internal/serverenv"
 	"github.com/fdully/calljournal/internal/storage"
 	"github.com/sethvargo/go-envconfig"
@@ -19,6 +20,10 @@ type BlobstoreConfigProvider interface {
 // DatabaseConfigProvider ensures that the environment config can provide a DB config.
 type DatabaseConfigProvider interface {
 	DatabaseConfig() *database.Config
+}
+
+type PublisherConfigProvider interface {
+	PublisherConfig() *queue.Config
 }
 
 func Setup(ctx context.Context, config interface{}) (*serverenv.ServerEnv, error) {
@@ -59,6 +64,19 @@ func WithSetup(ctx context.Context, config interface{}, l envconfig.Lookuper) (*
 
 		// Update serverEnv setup.
 		serverEnvOpts = append(serverEnvOpts, serverenv.WithDatabase(db))
+	}
+
+	if provider, ok := config.(PublisherConfigProvider); ok {
+		logger.Info("configuring publisher")
+
+		pubConfig := provider.PublisherConfig()
+
+		p, err := queue.NewPub(ctx, pubConfig)
+		if err != nil {
+			return nil, err
+		}
+
+		serverEnvOpts = append(serverEnvOpts, serverenv.WithPublisher(p))
 	}
 
 	return serverenv.NewServerEnv(ctx, serverEnvOpts...), nil

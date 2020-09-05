@@ -17,7 +17,7 @@ type BaseCall struct {
 	BILS int32     `json:"bils"`
 	RECD bool      `json:"recd"`
 	RECS int32     `json:"recs"`
-	RECL string    `json:"recl"`
+	RNAM string    `json:"rnam"`
 	RTAG string    `json:"rtag"`
 	EPOS int64     `json:"epos"`
 	EPOA int64     `json:"epoa"`
@@ -31,10 +31,11 @@ type BaseCall struct {
 }
 
 type RecordInfo struct {
-	UUID  uuid.UUID
-	Name  string
-	Dirc  string
-	Year  string
-	Month string
-	Day   string
+	UUID uuid.UUID `json:"uuid"`
+	ADDR string    `json:"addr"`
+	DIRC string    `json:"dirc"`
+	YEAR string    `json:"year"`
+	MONT string    `json:"mont"`
+	RDAY string    `json:"rday"`
+	RNAM string    `json:"rnam"`
 }

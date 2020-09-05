@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	"github.com/Azure/azure-sdk-for-go/tools/apidiff/ioext"
 )
 
 var _ Blobstore = (*FilesystemStorage)(nil)
@@ -37,6 +39,10 @@ func (s *FilesystemStorage) CreateObject(ctx context.Context, folder, filename s
 	}
 
 	return nil
+}
+
+func (s *FilesystemStorage) CreateFObject(ctx context.Context, folder, filename, fromFilename string) error {
+	return ioext.CopyFile(fromFilename, filename, true)
 }
 
 // GetObject download object from storage system.

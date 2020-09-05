@@ -34,8 +34,26 @@ type Minio struct {
 }
 
 func (m *Minio) CreateObject(ctx context.Context, bucket, objectName string, contents *bytes.Buffer) error {
+	if err := m.makeBucketIfNotExist(ctx, bucket); err != nil {
+		return err
+	}
+
 	_, err := m.client.PutObject(ctx, bucket, objectName, contents,
 		int64(contents.Len()), minio.PutObjectOptions{ContentType: "application/octet-stream"})
+	if err != nil {
+		return fmt.Errorf("failed CreateObject storage: %w", err)
+	}
+
+	return nil
+}
+
+func (m *Minio) CreateFObject(ctx context.Context, bucket, objectName, fromFilename string) error {
+	if err := m.makeBucketIfNotExist(ctx, bucket); err != nil {
+		return err
+	}
+
+	_, err := m.client.FPutObject(ctx, bucket, objectName, fromFilename,
+		minio.PutObjectOptions{ContentType: "application/octet-stream"})
 	if err != nil {
 		return fmt.Errorf("failed CreateObject storage: %w", err)
 	}
@@ -62,4 +80,19 @@ func (m *Minio) GetObject(ctx context.Context, bucket, objectName string) (*byte
 
 func (m *Minio) DeleteObject(ctx context.Context, bucket, objectName string) error {
 	return m.client.RemoveObject(context.Background(), bucket, objectName, minio.RemoveObjectOptions{})
+}
+
+func (m *Minio) makeBucketIfNotExist(ctx context.Context, bucket string) error {
+	ok, err := m.client.BucketExists(ctx, bucket)
+	if err != nil {
+		return err
+	}
+
+	if !ok {
+		if err := m.client.MakeBucket(ctx, bucket, minio.MakeBucketOptions{}); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

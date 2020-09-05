@@ -12,7 +12,7 @@ CREATE TABLE "base_calls" (
   "bils" int,
   "recd" bool,
   "recs" int,
-  "recl" varchar,
+  "rnam" varchar,
   "rtag" varchar,
   "epos" int8 NOT NULL,
   "epoa" int8,
@@ -35,7 +35,7 @@ COMMENT ON COLUMN "base_calls"."durs" IS 'call duration include signals';
 COMMENT ON COLUMN "base_calls"."bils" IS 'call talk duration without signaling time';
 COMMENT ON COLUMN "base_calls"."recd" IS 'call recorded';
 COMMENT ON COLUMN "base_calls"."recs" IS 'call record duration';
-COMMENT ON COLUMN "base_calls"."recl" IS 'call record file';
+COMMENT ON COLUMN "base_calls"."rnam" IS 'call record file';
 COMMENT ON COLUMN "base_calls"."rtag" IS 'call record privacy tag';
 COMMENT ON COLUMN "base_calls"."epos" IS 'call start time unix';
 COMMENT ON COLUMN "base_calls"."epoa" IS 'call answer time unix';

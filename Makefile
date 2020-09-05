@@ -4,6 +4,9 @@ run:
 runuploader:
 	go run cmd/calluploader/main.go
 
+runrecordstore:
+	go run cmd/recordstore/main.go
+
 migrateup:
 	goose -dir migrations postgres "user=${CJ_DB_USER} password=${CJ_DB_PASSWORD} dbname=${CJ_DB_NAME} sslmode=disable" up
 
@@ -17,8 +20,8 @@ test:
 	go test -v -race ./... -count=1
 
 integration-tests:
-	docker-compose -f ./docker-compose-tests.yaml up --build --abort-on-container-exit --exit-code-from integration_tests && \
-	docker-compose -f ./docker-compose-tests.yaml down
+	docker-compose -f ./docker-compose.test.yml up --build --abort-on-container-exit --exit-code-from integration_tests && \
+	docker-compose -f ./docker-compose.test.yml down
 
 generate:
 	go generate proto/gen.go
