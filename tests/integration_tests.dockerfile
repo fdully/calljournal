@@ -1,4 +1,4 @@
-FROM golang:1.14.4 AS builder
+FROM golang:1.14.4
 
 LABEL maintainer="Fdully <fdully@gmail.com>"
 
@@ -21,4 +21,4 @@ RUN go mod download
 # Copy everything from the current directory to the PWD(Present Working Directory) inside the container
 COPY . .
 
-CMD ["go test -v -tags integration ./tests/calluploader_test.go"]
+CMD ["go test -v -tags integration ./tests/cj_test.go"]

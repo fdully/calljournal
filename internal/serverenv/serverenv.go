@@ -9,9 +9,10 @@ import (
 )
 
 type ServerEnv struct {
-	blobstore storage.Blobstore
-	database  *database.DB
-	publisher queue.Publisher
+	blobstore  storage.Blobstore
+	database   *database.DB
+	publisher  queue.Publisher
+	subscriber queue.Subscribe
 }
 
 type Option func(*ServerEnv) *ServerEnv
@@ -50,6 +51,14 @@ func WithPublisher(p queue.Publisher) Option {
 	}
 }
 
+func WithSubscriber(s queue.Subscribe) Option {
+	return func(env *ServerEnv) *ServerEnv {
+		env.subscriber = s
+
+		return env
+	}
+}
+
 func (s *ServerEnv) Blobstore() storage.Blobstore {
 	return s.blobstore
 }
@@ -60,6 +69,10 @@ func (s *ServerEnv) Database() *database.DB {
 
 func (s *ServerEnv) Publisher() queue.Publisher {
 	return s.publisher
+}
+
+func (s *ServerEnv) Subscriber() queue.Subscribe {
+	return s.subscriber
 }
 
 func (s *ServerEnv) Close(ctx context.Context) error {

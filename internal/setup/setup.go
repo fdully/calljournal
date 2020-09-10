@@ -7,6 +7,7 @@ import (
 	"github.com/fdully/calljournal/internal/database"
 	"github.com/fdully/calljournal/internal/logging"
 	"github.com/fdully/calljournal/internal/queue"
+	"github.com/fdully/calljournal/internal/recordstore"
 	"github.com/fdully/calljournal/internal/serverenv"
 	"github.com/fdully/calljournal/internal/storage"
 	"github.com/sethvargo/go-envconfig"
@@ -26,15 +27,32 @@ type PublisherConfigProvider interface {
 	PublisherConfig() *queue.Config
 }
 
+type SubscriberConfigProvider interface {
+	SubscriberConfig() *queue.Config
+}
+
 func Setup(ctx context.Context, config interface{}) (*serverenv.ServerEnv, error) {
 	return WithSetup(ctx, config, envconfig.OsLookuper())
 }
 
+//nolint:funlen
 func WithSetup(ctx context.Context, config interface{}, l envconfig.Lookuper) (*serverenv.ServerEnv, error) {
 	logger := logging.FromContext(ctx)
 
 	if err := envconfig.ProcessWith(ctx, config, l); err != nil {
 		return nil, fmt.Errorf("failed to load environment variables: %w", err)
+	}
+
+	if recordStoreConfig, ok := config.(recordstore.Config); ok {
+		if recordStoreConfig.ConvertToMp3 {
+			logger.Debug("ping lame app")
+
+			if err := recordstore.PingLame(); err != nil {
+				logger.Errorf("failed to find lame app: %v", err)
+
+				return nil, err
+			}
+		}
 	}
 
 	var serverEnvOpts []serverenv.Option
@@ -77,6 +95,15 @@ func WithSetup(ctx context.Context, config interface{}, l envconfig.Lookuper) (*
 		}
 
 		serverEnvOpts = append(serverEnvOpts, serverenv.WithPublisher(p))
+	}
+
+	if provider, ok := config.(SubscriberConfigProvider); ok {
+		logger.Info("configuring subscriber")
+
+		subConfig := provider.SubscriberConfig()
+		sub := queue.NewSubscriber(subConfig)
+
+		serverEnvOpts = append(serverEnvOpts, serverenv.WithSubscriber(sub))
 	}
 
 	return serverenv.NewServerEnv(ctx, serverEnvOpts...), nil

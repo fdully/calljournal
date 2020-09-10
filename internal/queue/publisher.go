@@ -14,7 +14,7 @@ type pub struct {
 func NewPub(ctx context.Context, c *Config) (Publisher, error) {
 	config := nsq.NewConfig()
 
-	prod, err := nsq.NewProducer(c.Addr, config)
+	prod, err := nsq.NewProducer(c.NSQDAddr, config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new nsq producer: %w", err)
 	}

@@ -3,13 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
-	"time"
+	"sync"
 
 	"github.com/fdully/calljournal/internal/logging"
+	"github.com/fdully/calljournal/internal/queue"
 	"github.com/fdully/calljournal/internal/recordstore"
 	"github.com/fdully/calljournal/internal/server"
 	"github.com/fdully/calljournal/internal/setup"
-	"github.com/nsqio/go-nsq"
 	"github.com/sethvargo/go-signalcontext"
 )
 
@@ -32,10 +32,6 @@ func main() {
 }
 
 func realMain(ctx context.Context) error {
-	if err := recordstore.PingLame(); err != nil {
-		return err
-	}
-
 	var config recordstore.Config
 
 	env, err := setup.Setup(ctx, &config)
@@ -49,30 +45,37 @@ func realMain(ctx context.Context) error {
 		return fmt.Errorf("failed to serve metrics: %w", err)
 	}
 
-	// Instantiate a consumer that will subscribe to the provided channel.
-	cnf := nsq.NewConfig()
-	cnf.MaxAttempts = 1000
-
-	consumer, err := nsq.NewConsumer(config.RecordInfoTopic, config.RecordInfoChannel, cnf)
-	if err != nil {
-		return err
-	}
-
 	rs := recordstore.NewStoreServer(env, &config)
 
-	// Set the Handler for messages received by this Consumer. Can be called multiple times.
-	// See also AddConcurrentHandlers.
-	consumer.AddHandler(rs.HandleMessageWithContext(ctx))
+	stops := make([]queue.Stop, 0, config.WorkersNum)
 
-	err = consumer.ConnectToNSQD(config.NsqdAddr)
-	if err != nil {
-		return err
+	for i := 0; i < config.WorkersNum; i++ {
+		s, err := rs.Subscribe(ctx)
+		if err != nil {
+			return err
+		}
+
+		stops = append(stops, s)
 	}
 
-	defer consumer.Stop()
-
 	<-ctx.Done()
-	time.Sleep(time.Second * 1)
+
+	var wg sync.WaitGroup
+
+	for _, stop := range stops {
+		if stop == nil {
+			break
+		}
+
+		wg.Add(1)
+
+		go func(stop func()) {
+			defer wg.Done()
+			stop()
+		}(stop)
+	}
+
+	wg.Wait()
 
 	return nil
 }

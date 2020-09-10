@@ -69,5 +69,5 @@ services:
       - tests/calljournal.env
     environment:
       - CJ_DB_HOST=postgres
-    command: sh -c 'dockerize -wait tcp://postgres:5432 -- go test -v -tags integration ./tests/calluploader_test.go'
+    command: sh -c 'dockerize -wait tcp://postgres:5432 -- go test -v -tags integration ./tests/cj_test.go'
 
