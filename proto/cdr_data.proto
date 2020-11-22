@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+option go_package=".;pb";
+
+message CallPath {
+  string uuid = 1;
+  string dirc = 3;
+  string year = 5;
+  string mont = 7;
+  string dayx = 9;
+  string name = 11;
+}
+
+message SaveCDRRequest {
+  oneof data {
+    CallPath callpath = 1;
+    bytes cdr_chunk = 2;
+  }
+}
+
+message SaveCDRResponse {
+  string uuid = 1;
+  uint32 size = 3;
+}
+
+message SaveRecordRequest {
+  oneof data {
+    CallPath callpath = 1;
+    bytes record_chunk = 2;
+  }
+}
+
+message GetFileResponse {
+  bytes file_chunk = 1;
+}
+
+service CDRService {
+  rpc GetFile(CallPath) returns (stream GetFileResponse);
+  rpc SaveCDR(stream SaveCDRRequest) returns (SaveCDRResponse);
+  rpc SaveRecord(stream SaveRecordRequest) returns (SaveCDRResponse);
+}

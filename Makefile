@@ -1,11 +1,11 @@
-run:
-	go run cmd/calljournal/main.go
+runcdrserver:
+	go run cmd/cdrserver/main.go
 
-runuploader:
-	go run cmd/calluploader/main.go
+runcdrclient:
+	go run cmd/cdrclient/main.go
 
-runrecordstore:
-	go run cmd/recordstore/main.go
+runcdrstore:
+	go run cmd/cdrstore/main.go
 
 migrateup:
 	goose -dir migrations postgres "user=${CJ_DB_USER} password=${CJ_DB_PASSWORD} dbname=${CJ_DB_NAME} sslmode=disable" up

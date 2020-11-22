@@ -8,7 +8,7 @@ import (
 )
 
 type loggerConfig struct {
-	LoggerName  string `env:"CJ_LOGGER_NAME, required"`
+	LoggerName  string `env:"CJ_LOGGER_NAME, default=default"`
 	Severity    string `env:"CJ_LOGGER_LEVEL, default=debug"`
 	LogFileName string `env:"CJ_LOGGER_FILE"`
 	DevelopMode bool   `env:"CJ_LOGGER_DEVELOP_MODE, default=true"`

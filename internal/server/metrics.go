@@ -34,7 +34,7 @@ func ServeMetricsIfPrometheus(ctx context.Context) error {
 
 		_ = srv.Shutdown(shutdownCtx)
 
-		logger.Debug("metrics server shut down.")
+		logger.Info("metrics server shut down.")
 	}(ctx)
 
 	// serving http prometheus metrics
@@ -42,14 +42,14 @@ func ServeMetricsIfPrometheus(ctx context.Context) error {
 		mux := http.NewServeMux()
 		mux.Handle("/metrics", promhttp.Handler())
 
-		logger.Debugf("Metrics endpoint listening on %s", metricsAddr)
+		logger.Infof("Metrics endpoint listening on %s", metricsAddr)
 
 		srv.Handler = mux
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			logger.Debugf("error while serving metrics endpoint: %v", err)
+			logger.Errorf("error while serving metrics endpoint: %v", err)
 		}
 
-		logger.Debug("Metrics is done.")
+		logger.Info("Metrics is done.")
 	}(ctx)
 
 	return nil

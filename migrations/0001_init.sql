@@ -3,49 +3,41 @@
 CREATE TABLE "base_calls" (
   "id" SERIAL,
   "uuid" uuid PRIMARY KEY,
-  "clid" varchar NOT NULL,
-  "clna" varchar NOT NULL,
-  "dest" varchar NOT NULL,
-  "dirc" varchar NOT NULL,
-  "stti" timestamptz NOT NULL,
-  "durs" int,
-  "bils" int,
-  "recd" bool,
-  "recs" int,
-  "rnam" varchar,
-  "rtag" varchar,
-  "epos" int8 NOT NULL,
-  "epoa" int8,
-  "epoe" int8 NOT NULL,
-  "tag1" varchar,
-  "tag2" varchar,
-  "tag3" varchar,
-  "wbye" varchar,
-  "hang" varchar,
-  "code" varchar
+  "username" varchar,
+  "caller_id_name" varchar,
+  "caller_id_number" varchar,
+  "destination_number" varchar NOT NULL,
+  "cj_direction" varchar NOT NULL,
+  "start_stamp" timestamp NOT NULL,
+  "duration" int NOT NULL,
+  "billsec" int NOT NULL,
+  "record_seconds" int NOT NULL,
+  "record_name" varchar,
+  "start_epoch" int8 NOT NULL,
+  "answer_epoch" int8 NOT NULL,
+  "end_epoch" int8 NOT NULL,
+  "sip_hangup_disposition" varchar,
+  "hangup_cause" varchar,
+  "sip_term_status" varchar
 );
 
 COMMENT ON COLUMN "base_calls"."uuid" IS 'call uuid';
-COMMENT ON COLUMN "base_calls"."clid" IS 'caller id number';
-COMMENT ON COLUMN "base_calls"."clna" IS 'caller id name';
-COMMENT ON COLUMN "base_calls"."dest" IS 'callee number';
-COMMENT ON COLUMN "base_calls"."dirc" IS 'call direction';
-COMMENT ON COLUMN "base_calls"."stti" IS 'call start time';
-COMMENT ON COLUMN "base_calls"."durs" IS 'call duration include signals';
-COMMENT ON COLUMN "base_calls"."bils" IS 'call talk duration without signaling time';
-COMMENT ON COLUMN "base_calls"."recd" IS 'call recorded';
-COMMENT ON COLUMN "base_calls"."recs" IS 'call record duration';
-COMMENT ON COLUMN "base_calls"."rnam" IS 'call record file';
-COMMENT ON COLUMN "base_calls"."rtag" IS 'call record privacy tag';
-COMMENT ON COLUMN "base_calls"."epos" IS 'call start time unix';
-COMMENT ON COLUMN "base_calls"."epoa" IS 'call answer time unix';
-COMMENT ON COLUMN "base_calls"."epoe" IS 'call end time unix';
-COMMENT ON COLUMN "base_calls"."tag1" IS 'call additional info';
-COMMENT ON COLUMN "base_calls"."tag2" IS 'call additional info';
-COMMENT ON COLUMN "base_calls"."tag3" IS 'call additional info';
-COMMENT ON COLUMN "base_calls"."wbye" IS 'call hangup initiator';
-COMMENT ON COLUMN "base_calls"."hang" IS 'call hangup status';
-COMMENT ON COLUMN "base_calls"."code" IS 'call status code';
+COMMENT ON COLUMN "base_calls"."username" IS 'username of caller';
+COMMENT ON COLUMN "base_calls"."caller_id_name" IS 'caller id name';
+COMMENT ON COLUMN "base_calls"."caller_id_number" IS 'caller id number';
+COMMENT ON COLUMN "base_calls"."destination_number" IS 'destination number';
+COMMENT ON COLUMN "base_calls"."cj_direction" IS 'call direction';
+COMMENT ON COLUMN "base_calls"."start_stamp" IS 'call start time';
+COMMENT ON COLUMN "base_calls"."duration" IS 'call duration include signals';
+COMMENT ON COLUMN "base_calls"."billsec" IS 'call talk duration without signaling time';
+COMMENT ON COLUMN "base_calls"."record_seconds" IS 'call record duration';
+COMMENT ON COLUMN "base_calls"."record_name" IS 'call record file name';
+COMMENT ON COLUMN "base_calls"."start_epoch" IS 'call start time unix';
+COMMENT ON COLUMN "base_calls"."answer_epoch" IS 'call answer time unix';
+COMMENT ON COLUMN "base_calls"."end_epoch" IS 'call end time unix';
+COMMENT ON COLUMN "base_calls"."sip_hangup_disposition" IS 'call hangup initiator';
+COMMENT ON COLUMN "base_calls"."hangup_cause" IS 'call hangup status';
+COMMENT ON COLUMN "base_calls"."sip_term_status" IS 'call status code';
 
 
 -- +goose Down

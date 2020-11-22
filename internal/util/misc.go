@@ -13,6 +13,15 @@ import (
 
 var uuidRegex = regexp.MustCompile("[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}")
 
+type Error string
+
+func (e Error) Error() string { return string(e) }
+
+const (
+	ErrIsNil   = Error("cannot be nil")
+	ErrIsEmpty = Error("cannot be empty")
+)
+
 func GetUUIDFromString(str string) (uuid.UUID, error) {
 	s := uuidRegex.FindString(str)
 
@@ -41,5 +50,9 @@ func ContextError(ctx context.Context) error {
 }
 
 func ChangeWavExtToMp3(wavName string) string {
-	return strings.TrimSuffix(wavName, ".wav") + ".mp3"
+	if strings.HasSuffix(wavName, ".wav") {
+		return strings.TrimSuffix(wavName, ".wav") + ".mp3"
+	}
+
+	return wavName + ".mp3"
 }

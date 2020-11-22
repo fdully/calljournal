@@ -6,8 +6,10 @@ services:
     image: postgres
     ports:
       - 5432:5432
-    env_file:
-      - tests/database.env
+    environment:
+      - POSTGRES_USER=calljournal
+      - POSTGRES_PASSWORD=calljournal
+      - POSTGRES_DB=calljournal
 
   migration:
     build:
@@ -22,39 +24,65 @@ services:
     ports:
       - 4150:4150
       - 4151:4151
-    command: /nsqd
+    command: /nsqd -msg-timeout=30m -max-msg-timeout=45m
 
-  calljournal:
+  minio:
+    image: minio/minio
+    ports:
+      - 9000:9000
+    environment:
+      - MINIO_ACCESS_KEY=calljournal
+      - MINIO_SECRET_KEY=calljournal
+    command: server /data
+
+  cdrserver:
     build:
       context: .
-      dockerfile: tests/calljournal.dockerfile
+      dockerfile: tests/cdrserver.dockerfile
     ports:
       - 9111:9111
       - 41010:41010
     depends_on:
-      - postgres
       - migration
       - nsqd
     env_file:
-      - tests/calljournal.env
+      - tests/cdrserver.env
     environment:
-      - CJ_DB_HOST=postgres
       - CJ_NSQD_ADDR=nsqd:4150
-    command: sh -c 'dockerize -wait tcp://postgres:5432 -- /go/bin/calljournal'
+    command: sh -c 'dockerize -wait tcp://nsqd:4150 -- /go/bin/cdrserver'
 
-  calluploader:
+  cdrclient:
     build:
       context: .
-      dockerfile: tests/calluploader.dockerfile
+      dockerfile: tests/cdrclient.dockerfile
     ports:
       - 41011:41011
     depends_on:
-      - calljournal
+      - cdrserver
     env_file:
-      - tests/calluploader.env
+      - tests/cdrclient.env
     environment:
-      - CJ_GRPC_SERVER_ADDR=calljournal:9111
-    command: sh -c 'dockerize -wait tcp://calljournal:9111 -- /go/bin/calluploader'
+      - CJ_GRPC_SERVER_ADDR=cdrserver:9111
+    command: sh -c 'dockerize -wait tcp://cdrserver:9111 -- /go/bin/cdrclient'
+
+  cdrstore:
+    build:
+      context: .
+      dockerfile: tests/cdrstore.dockerfile
+    depends_on:
+      - postgres
+      - cdrserver
+      - migration
+      - nsqd
+    env_file:
+      - tests/cdrstore.env
+    environment:
+      - CJ_DB_HOST=postgres
+      - CJ_DB_PORT=5432
+      - CJ_NSQD_ADDR=nsqd:4150
+      - CJ_GRPC_SERVER_ADDR=cdrserver:9111
+      - CJ_MINIO_ENDPOINT=minio:9000
+    command: sh -c 'dockerize -wait tcp://nsqd:4150 -wait tcp://postgres:5432 --wait tcp://minio:9000 -- /go/bin/cdrstore'
 
   integration_tests:
     build:
@@ -63,11 +91,13 @@ services:
     depends_on:
       - postgres
       - migration
-      - calljournal
-      - calluploader
+      - cdrserver
+      - cdrclient
     env_file:
-      - tests/calljournal.env
+      - tests/cdrstore.env
     environment:
       - CJ_DB_HOST=postgres
-    command: sh -c 'dockerize -wait tcp://postgres:5432 -- go test -v -tags integration ./tests/cj_test.go'
+      - CJ_DB_PORT=5432
+      - CJ_MINIO_ENDPOINT=minio:9000
+    command: sh -c 'dockerize -wait tcp://postgres:5432 --wait tcp://minio:9000 -- go test -v -tags integration ./tests/cj_test.go'
 

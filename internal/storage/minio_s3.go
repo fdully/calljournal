@@ -89,9 +89,7 @@ func (m *Minio) makeBucketIfNotExist(ctx context.Context, bucket string) error {
 	}
 
 	if !ok {
-		if err := m.client.MakeBucket(ctx, bucket, minio.MakeBucketOptions{}); err != nil {
-			return err
-		}
+		_ = m.client.MakeBucket(ctx, bucket, minio.MakeBucketOptions{})
 	}
 
 	return nil

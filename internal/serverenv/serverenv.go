@@ -6,6 +6,7 @@ import (
 	"github.com/fdully/calljournal/internal/database"
 	"github.com/fdully/calljournal/internal/queue"
 	"github.com/fdully/calljournal/internal/storage"
+	gpool "github.com/processout/grpc-go-pool"
 )
 
 type ServerEnv struct {
@@ -13,6 +14,7 @@ type ServerEnv struct {
 	database   *database.DB
 	publisher  queue.Publisher
 	subscriber queue.Subscribe
+	grpcpool   *gpool.Pool
 }
 
 type Option func(*ServerEnv) *ServerEnv
@@ -59,6 +61,18 @@ func WithSubscriber(s queue.Subscribe) Option {
 	}
 }
 
+func WithGRPCPool(p *gpool.Pool) Option {
+	return func(env *ServerEnv) *ServerEnv {
+		env.grpcpool = p
+
+		return env
+	}
+}
+
+func (s *ServerEnv) GRPCPool() *gpool.Pool {
+	return s.grpcpool
+}
+
 func (s *ServerEnv) Blobstore() storage.Blobstore {
 	return s.blobstore
 }
@@ -88,6 +102,10 @@ func (s *ServerEnv) Close(ctx context.Context) error {
 
 	if s.publisher != nil {
 		_ = s.publisher.Close()
+	}
+
+	if s.grpcpool != nil {
+		s.grpcpool.Close()
 	}
 
 	return err

@@ -5,6 +5,7 @@ linters:
   disable-all: false
   enable-all: true
   disable:
+    - funlen
     - testpackage
     - gochecknoglobals
     - lll

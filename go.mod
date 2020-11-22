@@ -3,10 +3,9 @@ module github.com/fdully/calljournal
 go 1.14
 
 require (
-	contrib.go.opencensus.io/exporter/prometheus v0.2.0
 	github.com/Azure/azure-sdk-for-go v42.3.0+incompatible
+	github.com/go-errors/errors v1.1.1 // indirect
 	github.com/golang/protobuf v1.4.2
-	github.com/google/exposure-notifications-server v0.5.1 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/jackc/pgx/v4 v4.8.0
 	github.com/kr/text v0.2.0 // indirect
@@ -15,7 +14,9 @@ require (
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/nsqio/go-nsq v1.0.8
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/processout/grpc-go-pool v1.2.1
 	github.com/prometheus/client_golang v1.6.0
+	github.com/prometheus/common v0.10.0 // indirect
 	github.com/sethvargo/go-envconfig v0.2.3
 	github.com/sethvargo/go-signalcontext v0.1.0
 	github.com/shopspring/decimal v0.0.0-20200419222939-1884f454f8ea // indirect

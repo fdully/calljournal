@@ -2,17 +2,20 @@ package database
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
 	pgx "github.com/jackc/pgx/v4"
 )
 
-var (
-	ErrNotFound    = errors.New("record not found")
-	ErrKeyConflict = errors.New("key conflict")
-	ErrNotEffeced  = errors.New("no lines were effected")
+type Error string
+
+func (e Error) Error() string { return string(e) }
+
+const (
+	ErrNotFound    = Error("record not found")
+	ErrKeyConflict = Error("key conflict")
+	ErrNotEffeced  = Error("no lines were effected")
 )
 
 func (db *DB) NullableTime(t time.Time) *time.Time {

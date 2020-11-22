@@ -3,14 +3,17 @@ package setup
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/fdully/calljournal/internal/cdrstore"
 	"github.com/fdully/calljournal/internal/database"
 	"github.com/fdully/calljournal/internal/logging"
 	"github.com/fdully/calljournal/internal/queue"
-	"github.com/fdully/calljournal/internal/recordstore"
 	"github.com/fdully/calljournal/internal/serverenv"
 	"github.com/fdully/calljournal/internal/storage"
+	grpcpool "github.com/processout/grpc-go-pool"
 	"github.com/sethvargo/go-envconfig"
+	"google.golang.org/grpc"
 )
 
 // BlobstoreConfigProvider provides the information about current storage configuration.
@@ -31,6 +34,10 @@ type SubscriberConfigProvider interface {
 	SubscriberConfig() *queue.Config
 }
 
+type GRPCPoolConfigProvider interface {
+	GRPCPoolConfig() (serverAddr string, dialOpt []grpc.DialOption, numWorkers int)
+}
+
 func Setup(ctx context.Context, config interface{}) (*serverenv.ServerEnv, error) {
 	return WithSetup(ctx, config, envconfig.OsLookuper())
 }
@@ -43,11 +50,11 @@ func WithSetup(ctx context.Context, config interface{}, l envconfig.Lookuper) (*
 		return nil, fmt.Errorf("failed to load environment variables: %w", err)
 	}
 
-	if recordStoreConfig, ok := config.(recordstore.Config); ok {
+	if recordStoreConfig, ok := config.(cdrstore.Config); ok {
 		if recordStoreConfig.ConvertToMp3 {
 			logger.Debug("ping lame app")
 
-			if err := recordstore.PingLame(); err != nil {
+			if err := cdrstore.PingLame(); err != nil {
 				logger.Errorf("failed to find lame app: %v", err)
 
 				return nil, err
@@ -104,6 +111,28 @@ func WithSetup(ctx context.Context, config interface{}, l envconfig.Lookuper) (*
 		sub := queue.NewSubscriber(subConfig)
 
 		serverEnvOpts = append(serverEnvOpts, serverenv.WithSubscriber(sub))
+	}
+
+	if provider, ok := config.(GRPCPoolConfigProvider); ok {
+		logger.Info("configuring grpc pool")
+
+		serverAddr, dialOpt, numWorkers := provider.GRPCPoolConfig()
+
+		factory := func() (*grpc.ClientConn, error) {
+			conn, err := grpc.DialContext(ctx, serverAddr, dialOpt...)
+			if err != nil {
+				return nil, fmt.Errorf("failed on grpc connection: %w", err)
+			}
+
+			return conn, err
+		}
+
+		pool, err := grpcpool.New(factory, numWorkers, numWorkers, time.Second)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create gRPC pool: %w", err)
+		}
+
+		serverEnvOpts = append(serverEnvOpts, serverenv.WithGRPCPool(pool))
 	}
 
 	return serverenv.NewServerEnv(ctx, serverEnvOpts...), nil
