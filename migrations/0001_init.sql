@@ -8,7 +8,7 @@ CREATE TABLE "base_calls" (
   "caller_id_number" varchar,
   "destination_number" varchar NOT NULL,
   "cj_direction" varchar NOT NULL,
-  "start_stamp" timestamp NOT NULL,
+  "start_stamp" timestamptz NOT NULL,
   "duration" int NOT NULL,
   "billsec" int NOT NULL,
   "record_seconds" int NOT NULL,

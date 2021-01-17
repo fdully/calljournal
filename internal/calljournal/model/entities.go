@@ -25,3 +25,10 @@ type BaseCall struct {
 	HangupCause          string
 	SIPTermStatus        string
 }
+
+type Call struct {
+	BaseCall    *BaseCall
+	RecordName  string
+	Disconnect  string
+	ConnectTime int64
+}

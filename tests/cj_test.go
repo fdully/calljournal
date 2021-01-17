@@ -33,7 +33,7 @@ func (c *Integration) DatabaseConfig() *database.Config {
 	return &c.Database
 }
 
-func TestIntergration(t *testing.T) {
+func TestCDRIntergration(t *testing.T) {
 	ctx := context.Background()
 
 	logging.Init(ctx)
@@ -57,7 +57,7 @@ func TestIntergration(t *testing.T) {
 
 	for _, v := range uuids {
 		vv := uuid.MustParse(v)
-		_, err = db.GetBaseCallByUUID(ctx, vv)
+		_, _, err := db.GetBaseCallByUUID(ctx, vv)
 		require.NoError(t, err)
 	}
 

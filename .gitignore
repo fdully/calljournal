@@ -3,4 +3,9 @@
 .idea
 .DS_Store
 tmp
-cj.exe
+modd.conf
+live-reload
+calljournal
+cdrclient
+cdrstore
+

@@ -1,0 +1,37 @@
+{{ template "base" .}}
+
+{{define "title"}}Help{{end}}
+
+{{define "body"}}
+    <div class="container mt-3">
+        <div class="alert alert-success" role="alert">
+            Напишите сообщение и ваш номер для связи
+        </div>
+
+        <form action="" method="post">
+            <div class="mb-3">
+                <textarea class="form-control" name="message" rows="3" placeholder="Ваше сообщение c номером для связи..."></textarea>
+            </div>
+            <div class="col-12">
+                <input type="submit" class="btn btn-primary mt-2" value="Отправить">
+            </div>
+        </form>
+    </div>
+
+    {{if .}}
+
+        <div class="container mt-3">
+            {{if not .Err}}
+                <div class="alert alert-success" role="alert">
+                    сообщение отправлено
+                </div>
+            {{else}}
+                <div class="alert alert-danger" role="alert">
+                    попробуйте еще раз
+                </div>
+            {{end}}
+        </div>
+
+    {{end}}
+
+{{end}}

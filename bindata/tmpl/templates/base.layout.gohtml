@@ -1,0 +1,35 @@
+{{define "base"}}
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- CSS only -->
+    <link href="/static/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+
+    <link rel="icon" href="/static/favicon.png" type="image/x-icon">
+
+    <title>{{template "title" .}}</title>
+</head>
+<body>
+    <div class="container mt-2">
+        <ul class="nav navbar-dark bg-dark navbar-expand-lg justify-content-center">
+            <li class="navbar ms-3">
+                <a class="navbar-brand" href="./home">главная</a>
+            </li>
+            <li class="navbar ms-3">
+                <a class="navbar-brand" href="./search">поиск</a>
+            </li>
+            <li class="navbar ms-auto">
+                <a class="navbar-brand" href="./help">помощь</a>
+            </li>
+        </ul>
+    </div>
+
+    {{template "body" .}}
+
+</body>
+</html>
+{{end}}

@@ -3,6 +3,7 @@ package cdrutil
 import (
 	"encoding/xml"
 	"fmt"
+	"strings"
 	"time"
 
 	cjmodel "github.com/fdully/calljournal/internal/calljournal/model"
@@ -63,4 +64,25 @@ func CDRToBaseCall(cdr model.CDR) (cjmodel.BaseCall, error) {
 	bc.SIPTermStatus = cdr.Variables.SIPTermStatus
 
 	return bc, nil
+}
+
+func WhoDisconnect(call *cjmodel.BaseCall) string {
+	const (
+		worker = "сотрудник"
+		client = "клиент"
+	)
+
+	if call.Direction == "inc" {
+		if strings.Contains(call.SIPHangupDisposition, "send") {
+			return worker
+		}
+
+		return client
+	}
+
+	if strings.Contains(call.SIPHangupDisposition, "send") {
+		return client
+	}
+
+	return worker
 }

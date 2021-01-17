@@ -1,3 +1,6 @@
+run:
+	go run cmd/calljournal/main.go
+
 runcdrserver:
 	go run cmd/cdrserver/main.go
 
@@ -25,8 +28,12 @@ integration-tests:
 
 generate:
 	go generate proto/gen.go
+	go generate bindata/staticfs/gen.go
+
+template:
+	go generate bindata/tmpl/gen.go
 
 clean:
 	rm -rf internal/pb/*
 
-.PHONY: run runuploader migratedown migrateup lint generate clean intergration-tests
+.PHONY: run template runcdrserver runcdrclient runcdrstore migratedown migrateup lint generate clean intergration-tests

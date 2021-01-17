@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	cjmodel "github.com/fdully/calljournal/internal/calljournal/model"
 	"github.com/fdully/calljournal/internal/cdrserver/model"
 	"github.com/fdully/calljournal/internal/logging"
 	"github.com/fdully/calljournal/internal/pb"
@@ -27,10 +28,7 @@ func CDRPathInfoFromCDR(ctx context.Context, cdr model.CDR) (model.CallPath, err
 		return callPath, fmt.Errorf("failed to parse cdr uuid %s: %w", cdr.Variables.UUID, err)
 	}
 
-	stti, err := time.Parse("2006-01-02 15:04:05", string(cdr.Variables.StartStamp))
-	if err != nil {
-		return callPath, fmt.Errorf("failed to parse cdr stti time %s: %w", cdr.Variables.StartStamp, err)
-	}
+	stti := time.Unix(int64(cdr.Variables.StartEpoch), 0)
 
 	if cdr.Variables.CJCallDirection != "" {
 		dirc = cdr.Variables.CJCallDirection
@@ -41,9 +39,9 @@ func CDRPathInfoFromCDR(ctx context.Context, cdr model.CDR) (model.CallPath, err
 	return model.CallPath{
 		UUID: id,
 		DIRC: dirc,
-		YEAR: strconv.Itoa(stti.Year()),
-		MONT: fmt.Sprintf("%02d", int(stti.Month())),
-		DAYX: fmt.Sprintf("%02d", stti.Day()),
+		YEAR: strconv.Itoa(stti.UTC().Year()),
+		MONT: fmt.Sprintf("%02d", int(stti.UTC().Month())),
+		DAYX: fmt.Sprintf("%02d", stti.UTC().Day()),
 		NAME: name,
 	}, nil
 }
@@ -61,10 +59,7 @@ func RecordPathInfoFromCDR(ctx context.Context, cdr model.CDR) (model.CallPath, 
 		return callPathInfo, fmt.Errorf("failed to parse cdr uuid %s: %w", cdr.Variables.UUID, err)
 	}
 
-	stti, err := time.Parse("2006-01-02 15:04:05", string(cdr.Variables.StartStamp))
-	if err != nil {
-		return callPathInfo, fmt.Errorf("failed to parse cdr stti time %s: %w", cdr.Variables.StartStamp, err)
-	}
+	stti := time.Unix(int64(cdr.Variables.StartEpoch), 0)
 
 	if cdr.Variables.CJCallDirection != "" {
 		dirc = cdr.Variables.CJCallDirection
@@ -75,9 +70,9 @@ func RecordPathInfoFromCDR(ctx context.Context, cdr model.CDR) (model.CallPath, 
 	return model.CallPath{
 		UUID: id,
 		DIRC: dirc,
-		YEAR: strconv.Itoa(stti.Year()),
-		MONT: fmt.Sprintf("%02d", int(stti.Month())),
-		DAYX: fmt.Sprintf("%02d", stti.Day()),
+		YEAR: strconv.Itoa(stti.UTC().Year()),
+		MONT: fmt.Sprintf("%02d", int(stti.UTC().Month())),
+		DAYX: fmt.Sprintf("%02d", stti.UTC().Day()),
 		NAME: string(cdr.Variables.CJRecordName),
 	}, nil
 }
@@ -117,5 +112,27 @@ func CallPathToProtobufCallPath(p model.CallPath) *pb.CallPath {
 		Mont: p.MONT,
 		Dayx: p.DAYX,
 		Name: p.NAME,
+	}
+}
+
+func BasecallToCallPath(bc *cjmodel.BaseCall) model.CallPath {
+	return model.CallPath{
+		UUID: bc.UUID,
+		DIRC: bc.Direction,
+		YEAR: strconv.Itoa(bc.StartStamp.UTC().Year()),
+		MONT: fmt.Sprintf("%02d", int(bc.StartStamp.UTC().Month())),
+		DAYX: fmt.Sprintf("%02d", bc.StartStamp.UTC().Day()),
+		NAME: bc.RecordName,
+	}
+}
+
+func BasecallToCDRPath(bc *cjmodel.BaseCall) model.CallPath {
+	return model.CallPath{
+		UUID: bc.UUID,
+		DIRC: bc.Direction,
+		YEAR: strconv.Itoa(bc.StartStamp.UTC().Year()),
+		MONT: fmt.Sprintf("%02d", int(bc.StartStamp.UTC().Month())),
+		DAYX: fmt.Sprintf("%02d", bc.StartStamp.UTC().Day()),
+		NAME: bc.UUID.String() + ".xml",
 	}
 }

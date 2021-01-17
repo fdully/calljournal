@@ -137,23 +137,27 @@ func (db *CDRStoreDB) GetRecordPathByUUID(ctx context.Context, uuid uuid.UUID) (
 	return &cp, nil
 }
 
-func (db *CDRStoreDB) GetBaseCallByUUID(ctx context.Context, uuid uuid.UUID) (*cjmodel.BaseCall, error) {
-	var bc *cjmodel.BaseCall
+func (db *CDRStoreDB) GetBaseCallByUUID(ctx context.Context, uuid uuid.UUID) (*cjmodel.BaseCall, string, error) {
+	var (
+		bc *cjmodel.BaseCall
+		rn string
+	)
 
 	if err := db.db.InTx(ctx, pgx.Serializable, func(tx pgx.Tx) error {
 		row := tx.QueryRow(ctx, `
 			SELECT
-				uuid, username, caller_id_name, caller_id_number, destination_number, cj_direction, start_stamp,
-				duration, billsec, record_seconds, record_name, start_epoch, answer_epoch, end_epoch,
-				sip_hangup_disposition, hangup_cause, sip_term_status
+				u.uuid, u.username, u.caller_id_name, u.caller_id_number, u.destination_number, u.cj_direction, u.start_stamp,
+				u.duration, u.billsec, u.record_seconds, u.record_name, u.start_epoch, u.answer_epoch, u.end_epoch,
+				u.sip_hangup_disposition, u.hangup_cause, u.sip_term_status, d."name"
 			FROM
-				base_calls
+				base_calls as u
+			LEFT JOIN records_path as d ON u.uuid = d.uuid	
 			WHERE
-				uuid = $1
+				u.uuid = $1
 			`, uuid.String())
 
 		var err error
-		bc, err = scanOneBaseCall(row)
+		bc, rn, err = scanOneBaseCall(row)
 		if err != nil {
 			return err
 		}
@@ -161,18 +165,19 @@ func (db *CDRStoreDB) GetBaseCallByUUID(ctx context.Context, uuid uuid.UUID) (*c
 		return nil
 	}); err != nil {
 		if errors.Is(err, database.ErrNotFound) {
-			return nil, database.ErrNotFound
+			return nil, rn, database.ErrNotFound
 		}
 
-		return nil, fmt.Errorf("failed to get base call by uuid: %w", err)
+		return nil, rn, fmt.Errorf("failed to get base call by uuid: %w", err)
 	}
 
-	return bc, nil
+	return bc, rn, nil
 }
 
-func scanOneBaseCall(row pgx.Row) (*cjmodel.BaseCall, error) {
+func scanOneBaseCall(row pgx.Row) (*cjmodel.BaseCall, string, error) {
 	var (
 		bc                   cjmodel.BaseCall
+		rn                   sql.NullString
 		username             sql.NullString
 		callerName           sql.NullString
 		callerNumber         sql.NullString
@@ -184,12 +189,12 @@ func scanOneBaseCall(row pgx.Row) (*cjmodel.BaseCall, error) {
 
 	if err := row.Scan(&bc.UUID, &username, &callerName, &callerNumber, &bc.DestinationNumber, &bc.Direction,
 		&bc.StartStamp, &bc.Duration, &bc.Billsec, &bc.RecordSeconds, &recordName, &bc.StartEpoch,
-		&bc.AnswerEpoch, &bc.EndEpoch, &sipHangupDisposition, &hangupCause, &sipTermStatus); err != nil {
+		&bc.AnswerEpoch, &bc.EndEpoch, &sipHangupDisposition, &hangupCause, &sipTermStatus, &rn); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, database.ErrNotFound
+			return nil, rn.String, database.ErrNotFound
 		}
 
-		return nil, fmt.Errorf("failed to scan base call: %w", err)
+		return nil, rn.String, fmt.Errorf("failed to scan base call: %w", err)
 	}
 
 	if username.Valid {
@@ -216,5 +221,5 @@ func scanOneBaseCall(row pgx.Row) (*cjmodel.BaseCall, error) {
 		bc.SIPTermStatus = sipTermStatus.String
 	}
 
-	return &bc, nil
+	return &bc, rn.String, nil
 }

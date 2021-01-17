@@ -3,6 +3,7 @@ package cdrclient
 import (
 	"time"
 
+	"github.com/fdully/calljournal/internal/setup"
 	"google.golang.org/grpc"
 )
 
@@ -10,6 +11,8 @@ const (
 	GRPCMaxMsgSize   = 5 * 1024 * 1024 * 1024 * 1024
 	GRPCMsgByteChunk = 64 * 1024
 )
+
+var _ setup.GRPCPoolConfigProvider = (*Config)(nil)
 
 type Config struct {
 	BaseCallDir    string        `env:"CJ_BASECALL_DIR, required"`

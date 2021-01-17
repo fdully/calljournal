@@ -111,17 +111,17 @@ func (s *Server) ServeGRPC(ctx context.Context, srv *grpc.Server) error {
 	}
 }
 
-// NSQDAddr returns the server's listening address (ip + port).
+// returns the server's listening address (ip + port).
 func (s *Server) Addr() string {
 	return net.JoinHostPort(s.ip, s.port)
 }
 
-// IP returns the server's listening IP.
+// returns the server's listening IP.
 func (s *Server) IP() string {
 	return s.ip
 }
 
-// Port returns the server's listening port.
+// returns the server's listening port.
 func (s *Server) Port() string {
 	return s.port
 }

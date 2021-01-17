@@ -18,8 +18,9 @@ type Error string
 func (e Error) Error() string { return string(e) }
 
 const (
-	ErrIsNil   = Error("cannot be nil")
-	ErrIsEmpty = Error("cannot be empty")
+	ErrIsNil    = Error("cannot be nil")
+	ErrIsEmpty  = Error("cannot be empty")
+	ErrNotExist = Error("not exist")
 )
 
 func GetUUIDFromString(str string) (uuid.UUID, error) {

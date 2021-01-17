@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/fdully/calljournal/internal/cdrstore"
 	"github.com/fdully/calljournal/internal/database"
 	"github.com/fdully/calljournal/internal/logging"
 	"github.com/fdully/calljournal/internal/queue"
@@ -48,18 +47,6 @@ func WithSetup(ctx context.Context, config interface{}, l envconfig.Lookuper) (*
 
 	if err := envconfig.ProcessWith(ctx, config, l); err != nil {
 		return nil, fmt.Errorf("failed to load environment variables: %w", err)
-	}
-
-	if recordStoreConfig, ok := config.(cdrstore.Config); ok {
-		if recordStoreConfig.ConvertToMp3 {
-			logger.Debug("ping lame app")
-
-			if err := cdrstore.PingLame(); err != nil {
-				logger.Errorf("failed to find lame app: %v", err)
-
-				return nil, err
-			}
-		}
 	}
 
 	var serverEnvOpts []serverenv.Option

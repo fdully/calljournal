@@ -3,11 +3,18 @@ package cdrstore
 import (
 	"github.com/fdully/calljournal/internal/database"
 	"github.com/fdully/calljournal/internal/queue"
+	"github.com/fdully/calljournal/internal/setup"
 	"github.com/fdully/calljournal/internal/storage"
 	"google.golang.org/grpc"
 )
 
 const GRPCMaxMsgSize = 5 * 1024 * 1024 * 1024 * 1024
+
+var (
+	_ setup.BlobstoreConfigProvider  = (*Config)(nil)
+	_ setup.DatabaseConfigProvider   = (*Config)(nil)
+	_ setup.SubscriberConfigProvider = (*Config)(nil)
+)
 
 type Config struct {
 	Blobstore      storage.Config

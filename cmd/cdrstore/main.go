@@ -44,6 +44,13 @@ func realMain(ctx context.Context) error {
 	}
 	defer env.Close(ctx)
 
+	// check if lame installed
+	if config.ConvertToMp3 {
+		if err := cdrstore.PingLame(); err != nil {
+			return fmt.Errorf("failed to find lame app: %w", err)
+		}
+	}
+
 	// run prometheus metrics
 	if err := server.ServeMetricsIfPrometheus(ctx); err != nil {
 		return fmt.Errorf("failed to serve metrics: %w", err)

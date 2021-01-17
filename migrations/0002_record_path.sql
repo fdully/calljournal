@@ -24,4 +24,4 @@ COMMENT ON COLUMN "records_path"."name" IS 'record file name';
 
 -- +goose Down
 -- SQL in this section is executed when the migration is rolled back.
-DROP TABLE "record_path";
+DROP TABLE "records_path";

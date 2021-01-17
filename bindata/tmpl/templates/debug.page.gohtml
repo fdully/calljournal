@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- CSS only -->
+    <link href="/static/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+
+    <title>Debug</title>
+</head>
+<body>
+
+    <div class="container mt-3">
+    <form action="">
+        <input id="searcher" class="form-control mr-sm-2" type="text" name="search">
+        <input type="submit" class="btn btn-primary mt-2" value="Поиск">
+
+    </form>
+    </div>
+
+        {{if ne .Search ""}}
+
+            {{if ne .UUID ""}}
+
+                <div class="container mt-5">
+                    <hr>
+                    {{template "debug-call" .}}
+                </div>
+
+            {{else}}
+
+                <div class="container mt-3">
+                    <h3 class="h3">{{.Search}} не найден</h3>
+                </div>
+
+            {{end}}
+
+        {{else}}
+
+            {{template "page" .}}
+
+        {{end}}
+
+
+{{define "page"}}
+
+{{end}}
+
+
+
+
