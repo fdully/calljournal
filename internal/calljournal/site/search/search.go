@@ -96,15 +96,18 @@ func (h *handler) handleRequest(w http.ResponseWriter, r *http.Request) *respons
 		}
 	}
 
+	// search by uuid
 	id, err := uuid.Parse(searchStr)
 	if err == nil {
 		return h.searchCallByUUID(r.Context(), id, searchStr)
 	}
 
+	// search by telephone number
 	if isSearchByNumber(searchStr) {
 		return h.searchCallByNumber(r.Context(), searchStr)
 	}
 
+	// no search
 	return &response{
 		status: http.StatusOK,
 		err:    nil,

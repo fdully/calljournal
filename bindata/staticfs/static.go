@@ -184,7 +184,7 @@ func staticBootstrapMinCss() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/bootstrap.min.css", size: 153111, mode: os.FileMode(420), modTime: time.Unix(1607356212, 0)}
+	info := bindataFileInfo{name: "static/bootstrap.min.css", size: 153111, mode: os.FileMode(420), modTime: time.Unix(1610873696, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -204,7 +204,7 @@ func staticBootstrapMinCssMap() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/bootstrap.min.css.map", size: 422371, mode: os.FileMode(420), modTime: time.Unix(1607356212, 0)}
+	info := bindataFileInfo{name: "static/bootstrap.min.css.map", size: 422371, mode: os.FileMode(420), modTime: time.Unix(1610873696, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -224,7 +224,7 @@ func staticFaviconPng() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/favicon.png", size: 6731, mode: os.FileMode(420), modTime: time.Unix(1610717319, 0)}
+	info := bindataFileInfo{name: "static/favicon.png", size: 6731, mode: os.FileMode(420), modTime: time.Unix(1610873696, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -244,7 +244,7 @@ func staticSearchHelpHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/search.help.html", size: 1308, mode: os.FileMode(420), modTime: time.Unix(1610706810, 0)}
+	info := bindataFileInfo{name: "static/search.help.html", size: 1308, mode: os.FileMode(420), modTime: time.Unix(1610873696, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

@@ -5,7 +5,7 @@
 tmp
 modd.conf
 live-reload
-calljournal
-cdrclient
-cdrstore
-
+/calljournal
+/cdrclient
+/cdrstore
+modd.conf

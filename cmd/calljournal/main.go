@@ -9,6 +9,7 @@ import (
 	"github.com/fdully/calljournal/internal/calljournal"
 	apicdrxml "github.com/fdully/calljournal/internal/calljournal/api/cdrxml"
 	apilisten "github.com/fdully/calljournal/internal/calljournal/api/listen"
+	sitecall "github.com/fdully/calljournal/internal/calljournal/site/call"
 	sitedebug "github.com/fdully/calljournal/internal/calljournal/site/debug"
 	sitehelp "github.com/fdully/calljournal/internal/calljournal/site/help"
 	sitehome "github.com/fdully/calljournal/internal/calljournal/site/home"
@@ -60,6 +61,7 @@ func realMain(ctx context.Context) error {
 	mux.Handle("/way188/home", sitehome.Handle(ctx))
 	mux.Handle("/way188/search", sitesearch.Handle(ctx, &config, env))
 	mux.Handle("/way188/help", sitehelp.Handle(ctx, &config))
+	mux.Handle("/way188/call", sitecall.Handle(ctx, &config, env))
 
 	srv, err := server.NewServer(config.Addr)
 	if err != nil {
