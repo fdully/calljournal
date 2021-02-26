@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"net"
@@ -21,6 +22,26 @@ type Server struct {
 
 func NewServer(addr string) (*Server, error) {
 	listener, err := net.Listen("tcp", addr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create listener on %s: %w", addr, err)
+	}
+
+	return &Server{
+		ip:       listener.Addr().(*net.TCPAddr).IP.String(),
+		port:     strconv.Itoa(listener.Addr().(*net.TCPAddr).Port),
+		listener: listener,
+	}, nil
+}
+
+func NewTLSServer(addr string) (*Server, error) {
+	cer, err := tls.LoadX509KeyPair("server.crt", "server.key")
+	if err != nil {
+		return nil, err
+	}
+
+	config := &tls.Config{Certificates: []tls.Certificate{cer}, MinVersion: tls.VersionTLS11}
+
+	listener, err := tls.Listen("tcp", addr, config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create listener on %s: %w", addr, err)
 	}

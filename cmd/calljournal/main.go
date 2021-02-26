@@ -63,7 +63,14 @@ func realMain(ctx context.Context) error {
 	mux.Handle("/way188/help", sitehelp.Handle(ctx, &config))
 	mux.Handle("/way188/call", sitecall.Handle(ctx, &config, env))
 
-	srv, err := server.NewServer(config.Addr)
+	var srv *server.Server
+
+	if config.TLSEnabled {
+		srv, err = server.NewTLSServer(config.Addr)
+	} else {
+		srv, err = server.NewServer(config.Addr)
+	}
+
 	if err != nil {
 		return fmt.Errorf("failed to create server: %w", err)
 	}

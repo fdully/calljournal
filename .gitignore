@@ -9,3 +9,5 @@ live-reload
 /cdrclient
 /cdrstore
 modd.conf
+server.crt
+server.key

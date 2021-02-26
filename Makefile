@@ -1,6 +1,9 @@
 run:
 	go run cmd/calljournal/main.go
 
+build:
+	GOOS=linux GOARCH=amd64 go build -o calljournal cmd/calljournal/main.go
+
 runcdrserver:
 	go run cmd/cdrserver/main.go
 
