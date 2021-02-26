@@ -39,6 +39,7 @@ func NewTLSServer(addr string) (*Server, error) {
 		return nil, err
 	}
 
+	//nolint:gosec
 	config := &tls.Config{Certificates: []tls.Certificate{cer}, MinVersion: tls.VersionTLS11}
 
 	listener, err := tls.Listen("tcp", addr, config)

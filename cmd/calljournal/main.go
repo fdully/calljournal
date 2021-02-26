@@ -8,6 +8,7 @@ import (
 	"github.com/fdully/calljournal/bindata/staticfs"
 	"github.com/fdully/calljournal/internal/calljournal"
 	apicdrxml "github.com/fdully/calljournal/internal/calljournal/api/cdrxml"
+	apidownload "github.com/fdully/calljournal/internal/calljournal/api/download"
 	apilisten "github.com/fdully/calljournal/internal/calljournal/api/listen"
 	sitecall "github.com/fdully/calljournal/internal/calljournal/site/call"
 	sitedebug "github.com/fdully/calljournal/internal/calljournal/site/debug"
@@ -57,6 +58,7 @@ func realMain(ctx context.Context) error {
 	mux.Handle("/static/", http.FileServer(staticfs.AssetFile()))
 	mux.Handle("/api/v1/listen", apilisten.Handle(ctx, &config, env))
 	mux.Handle("/api/v1/cdrxml", apicdrxml.Handle(ctx, &config, env))
+	mux.Handle("/api/v1/call/download", apidownload.Handle(ctx, &config, env))
 	mux.Handle("/way188/debug", sitedebug.Handle(ctx, &config, env))
 	mux.Handle("/way188/home", sitehome.Handle(ctx))
 	mux.Handle("/way188/search", sitesearch.Handle(ctx, &config, env))
