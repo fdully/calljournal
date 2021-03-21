@@ -84,5 +84,5 @@ func WhoDisconnect(call *cjmodel.BaseCall) string {
 		return client
 	}
 
-	return worker
+	return "неизвестно"
 }

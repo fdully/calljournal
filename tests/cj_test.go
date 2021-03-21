@@ -52,20 +52,23 @@ func TestCDRIntergration(t *testing.T) {
 
 	db := cdrstoredb.New(env.Database())
 
-	uuids := []string{"3f78ec6c-54d0-4b0a-991b-9e5eecf6934d", "4b818455-0f50-4a97-b9e2-23ec5b3a2e27",
-		"622c01e5-7b1e-46a8-b1c3-62f7c531ebaa", "a5c191b2-734d-4450-ae23-9062b1226718"}
+	t.Run("cdr", func(t *testing.T) {
+		uuids := []string{"3f78ec6c-54d0-4b0a-991b-9e5eecf6934d", "4b818455-0f50-4a97-b9e2-23ec5b3a2e27",
+			"622c01e5-7b1e-46a8-b1c3-62f7c531ebaa", "a5c191b2-734d-4450-ae23-9062b1226718"}
 
-	for _, v := range uuids {
-		vv := uuid.MustParse(v)
-		_, _, err := db.GetBaseCallByUUID(ctx, vv)
+		for _, v := range uuids {
+			vv := uuid.MustParse(v)
+			_, _, err := db.GetBaseCallByUUID(ctx, vv)
+			require.NoError(t, err)
+		}
+
+		uu := uuid.MustParse("622c01e5-7b1e-46a8-b1c3-62f7c531ebaa")
+		_, err = db.GetRecordPathByUUID(ctx, uu)
 		require.NoError(t, err)
-	}
 
-	uu := uuid.MustParse("622c01e5-7b1e-46a8-b1c3-62f7c531ebaa")
-	_, err = db.GetRecordPathByUUID(ctx, uu)
-	require.NoError(t, err)
+		uu = uuid.MustParse("000c01e5-7b1e-46a8-b1c3-62f7c531ebaa")
+		_, err = db.GetRecordPathByUUID(ctx, uu)
+		require.Equal(t, database.ErrNotFound, err)
+	})
 
-	uu = uuid.MustParse("000c01e5-7b1e-46a8-b1c3-62f7c531ebaa")
-	_, err = db.GetRecordPathByUUID(ctx, uu)
-	require.Equal(t, database.ErrNotFound, err)
 }

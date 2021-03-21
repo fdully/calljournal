@@ -69,7 +69,7 @@ func (s *Server) ServeHTTP(ctx context.Context, srv *http.Server) error {
 		shutdownCtx, done := context.WithTimeout(context.Background(), serverShutdownDelay*time.Second)
 		defer done()
 
-		logger.Debugf("server.Serve: shutting down")
+		logger.Debugf("HTTP server.Serve: shutting down")
 
 		if err := srv.Shutdown(shutdownCtx); err != nil {
 			select {
@@ -84,7 +84,7 @@ func (s *Server) ServeHTTP(ctx context.Context, srv *http.Server) error {
 		return fmt.Errorf("failed to serve: %w", err)
 	}
 
-	logger.Debugf("server.Serve: serving stopped")
+	logger.Debugf("HTTP server.Serve: serving stopped")
 
 	// Return any errors that happened during shutdown.
 	select {
@@ -112,8 +112,8 @@ func (s *Server) ServeGRPC(ctx context.Context, srv *grpc.Server) error {
 	go func() {
 		<-ctx.Done()
 
-		logger.Debugf("server.Serve: context closed")
-		logger.Debugf("server.Serve: shutting down")
+		logger.Debugf("GRPC server.Serve: context closed")
+		logger.Debugf("GRPC server.Serve: shutting down")
 		srv.GracefulStop()
 	}()
 

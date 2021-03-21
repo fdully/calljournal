@@ -7,6 +7,7 @@ import (
 
 	"github.com/fdully/calljournal/bindata/staticfs"
 	"github.com/fdully/calljournal/internal/calljournal"
+	"github.com/fdully/calljournal/internal/calljournal/api/basecall"
 	apicdrxml "github.com/fdully/calljournal/internal/calljournal/api/cdrxml"
 	apidownload "github.com/fdully/calljournal/internal/calljournal/api/download"
 	apilisten "github.com/fdully/calljournal/internal/calljournal/api/listen"
@@ -15,11 +16,14 @@ import (
 	sitehelp "github.com/fdully/calljournal/internal/calljournal/site/help"
 	sitehome "github.com/fdully/calljournal/internal/calljournal/site/home"
 	sitesearch "github.com/fdully/calljournal/internal/calljournal/site/search"
+	"github.com/fdully/calljournal/internal/cdrserver"
 	"github.com/fdully/calljournal/internal/logging"
+	"github.com/fdully/calljournal/internal/pb"
 	"github.com/fdully/calljournal/internal/server"
 	"github.com/fdully/calljournal/internal/setup"
 	"github.com/fdully/calljournal/internal/templates"
 	"github.com/sethvargo/go-signalcontext"
+	"google.golang.org/grpc"
 )
 
 func main() {
@@ -49,6 +53,8 @@ func main() {
 func realMain(ctx context.Context) error {
 	var config calljournal.Config
 
+	logger := logging.FromContext(ctx)
+
 	env, err := setup.Setup(ctx, &config)
 	if err != nil {
 		return fmt.Errorf("failed setup %w", err)
@@ -65,6 +71,19 @@ func realMain(ctx context.Context) error {
 	mux.Handle("/way188/help", sitehelp.Handle(ctx, &config))
 	mux.Handle("/way188/call", sitecall.Handle(ctx, &config, env))
 
+	baseCallServer := basecall.NewServer(env, &config)
+
+	var options []grpc.ServerOption
+	options = append(options, grpc.MaxSendMsgSize(cdrserver.GRPCMaxMsgSize), grpc.MaxRecvMsgSize(cdrserver.GRPCMaxMsgSize))
+	grpcServer := grpc.NewServer(options...)
+
+	pb.RegisterBaseCallServiceServer(grpcServer, baseCallServer)
+
+	grpcSrv, err := server.NewServer(config.GrpcServerAddress)
+	if err != nil {
+		return fmt.Errorf("failed to create server: %w", err)
+	}
+
 	var srv *server.Server
 
 	if config.TLSEnabled {
@@ -77,5 +96,39 @@ func realMain(ctx context.Context) error {
 		return fmt.Errorf("failed to create server: %w", err)
 	}
 
-	return srv.ServeHTTPHandler(ctx, mux)
+	errCh := make(chan error, 1)
+
+	go func() {
+		logger.Infof("HTTP listen on %s", config.Addr)
+
+		if err := srv.ServeHTTPHandler(ctx, mux); err != nil {
+			select {
+			case errCh <- err:
+			default:
+			}
+		}
+
+		select {
+		case errCh <- nil:
+		default:
+		}
+	}()
+
+	go func() {
+		logger.Infof("GRPC listen on %s", config.GrpcServerAddress)
+
+		if err := grpcSrv.ServeGRPC(ctx, grpcServer); err != nil {
+			select {
+			case errCh <- err:
+			default:
+			}
+		}
+
+		select {
+		case errCh <- nil:
+		default:
+		}
+	}()
+
+	return <-errCh
 }

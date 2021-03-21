@@ -42,17 +42,17 @@ func realMain(ctx context.Context) error {
 	}
 	defer env.Close(ctx)
 
-	baseCallServer := cdrserver.NewCDRServer(env, &config)
+	cdrServer := cdrserver.NewCDRServer(env, &config)
 
 	var options []grpc.ServerOption
 	options = append(options, grpc.MaxSendMsgSize(cdrserver.GRPCMaxMsgSize), grpc.MaxRecvMsgSize(cdrserver.GRPCMaxMsgSize))
 	grpcServer := grpc.NewServer(options...)
 
-	pb.RegisterCDRServiceServer(grpcServer, baseCallServer)
+	pb.RegisterCDRServiceServer(grpcServer, cdrServer)
 
 	srv, err := server.NewServer(config.GrpcServerAddress)
 	if err != nil {
-		return fmt.Errorf("failed to create NewServer: %w", err)
+		return fmt.Errorf("failed to create server: %w", err)
 	}
 
 	logger.Infof("listen on %s", config.GrpcServerAddress)

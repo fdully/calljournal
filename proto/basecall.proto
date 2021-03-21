@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "cdr_data.proto";
+
+option go_package=".;pb";
+
+
+message BaseCall {
+  string uuid = 1;
+  string username = 3;
+  string caller_id_name = 5;
+  string caller_id_number = 7;
+  string destination_number = 10;
+  string direction = 13;
+  google.protobuf.Timestamp start_stamp = 16;
+  int64 duration = 19;
+  int64 billsec = 22;
+  int64 record_seconds = 28;
+  string record_name = 31;
+  int64 start_epoch = 37;
+  int64 answer_epoch = 40;
+  int64 end_epoch = 43;
+  string sip_hangup_disposition = 53;
+  string hangup_cause = 56;
+  string sip_term_status = 59;
+}
+
+message SaveBaseCallRequest {
+  BaseCall basecall = 1;
+}
+
+message SaveBaseCallRecordRequest {
+  oneof data {
+    CallPath callpath = 1;
+    bytes record_chunk = 2;
+  }
+}
+
+message SaveBaseCallResponse {
+  string uuid = 1;
+  uint32 size = 3;
+}
+
+service BaseCallService {
+  rpc SaveBaseCall(SaveBaseCallRequest) returns (SaveBaseCallResponse);
+  rpc SaveBaseCallRecord(stream SaveBaseCallRecordRequest) returns (SaveBaseCallResponse);
+}
